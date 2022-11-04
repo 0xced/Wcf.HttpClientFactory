@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using System.ServiceModel.Description;
+using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,46 +7,46 @@ using Xunit;
 
 namespace System.ServiceModel.HttpClientFactory.Tests;
 
+public class ClientConfigurationProvider : IClientConfigurationProvider
+{
+    public Binding GetBinding(string configurationName)
+    {
+        return new BasicHttpBinding
+        {
+            MaxBufferSize = int.MaxValue,
+            ReaderQuotas = Xml.XmlDictionaryReaderQuotas.Max,
+            MaxReceivedMessageSize = int.MaxValue,
+            AllowCookies = true
+        };
+    }
+
+    public EndpointAddress GetEndpointAddress(string configurationName)
+    {
+        return new EndpointAddress("http://apps.learnwebservices.com/services/hello");
+    }
+}
+
 public class UnitTest
 {
-    private static readonly HelloFactory HelloFactory;
+    private static readonly IServiceProvider ServiceProvider;
 
     static UnitTest()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<HelloFactory>();
-        services.AddContractHttpClientFactory<HelloEndpoint>();
-        HelloFactory = services.BuildServiceProvider().GetRequiredService<HelloFactory>();
+        services.AddContract<HelloEndpoint>();
+        ServiceProvider = services.BuildServiceProvider();
     }
 
     [Theory]
     [InlineData("Steve", "Hello Steve!")]
     [InlineData("Jane", "Hello Jane!")]
+    [InlineData("<>", "Hello <>!")]
     public async Task TestSayHello(string name, string greeting)
     {
-        var client = HelloFactory.CreateHelloEndpoint();
-        var response = await client.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
+        var service = ServiceProvider.GetRequiredService<HelloEndpoint>();
+
+        var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
 
         response.HelloResponse.Message.Should().Be(greeting);
-    }
-}
-
-public class HelloFactory
-{
-    private readonly IEnumerable<IEndpointBehavior> _endpointBehaviors;
-
-    public HelloFactory(IEnumerable<IEndpointBehavior> endpointBehaviors)
-    {
-        _endpointBehaviors = endpointBehaviors ?? throw new ArgumentNullException(nameof(endpointBehaviors));
-    }
-
-    public HelloEndpoint CreateHelloEndpoint()
-    {
-        var helloEndpoint = new HelloEndpointClient();
-        foreach (var endpointBehavior in _endpointBehaviors)
-        {
-            helloEndpoint.Endpoint.EndpointBehaviors.Add(endpointBehavior);
-        }
-        return helloEndpoint;
     }
 }
