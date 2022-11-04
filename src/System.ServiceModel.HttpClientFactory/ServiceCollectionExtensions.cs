@@ -6,7 +6,7 @@ namespace System.ServiceModel.HttpClientFactory;
 
 public static class ServiceCollectionExtensions
 {
-    public static IHttpClientBuilder AddContract<TContract>(this IServiceCollection services, ServiceLifetime clientLifetime = ServiceLifetime.Transient, IClientConfigurationProvider? clientConfigurationProvider = null)
+    public static IHttpClientBuilder AddContract<TContract>(this IServiceCollection services, ServiceLifetime contractLifetime = ServiceLifetime.Transient, IClientConfigurationProvider? clientConfigurationProvider = null)
         where TContract : class
     {
         var contractDescription = ContractDescription.GetContract(typeof(TContract));
@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);
         if (descriptor != null)
         {
-            throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} client lifetime)", nameof(TContract));
+            throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
         }
 
         var clientTypes = contractType.Assembly.GetExportedTypes().Where(e => e.IsAssignableTo(contractType) && e.IsAssignableTo(typeof(ClientBase<TContract>)));
@@ -28,19 +28,19 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton(clientConfigurationProvider ?? new ReflectionClientConfigurationProvider(clientType));
         services.TryAddSingleton<HttpMessageHandlerBehavior>();
-        services.TryAddSingleton(sp => new ContractFactory<TContract>(contractDescription, clientType, configurationName, sp.GetRequiredService<IClientConfigurationProvider>(), sp.GetRequiredService<HttpMessageHandlerBehavior>()));
+        services.TryAddSingleton(sp => new ContractFactory<TContract>(sp.GetRequiredService<IClientConfigurationProvider>(), sp.GetRequiredService<HttpMessageHandlerBehavior>()));
 
-        if (clientLifetime == ServiceLifetime.Singleton)
+        if (contractLifetime == ServiceLifetime.Singleton)
         {
-            services.AddSingleton(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract());
+            services.AddSingleton(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription, clientType));
         }
-        else if (clientLifetime == ServiceLifetime.Scoped)
+        else if (contractLifetime == ServiceLifetime.Scoped)
         {
-            services.AddScoped(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract());
+            services.AddScoped(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription, clientType));
         }
-        else if (clientLifetime == ServiceLifetime.Transient)
+        else if (contractLifetime == ServiceLifetime.Transient)
         {
-            services.AddTransient(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract());
+            services.AddTransient(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription, clientType));
         }
 
         return services.AddHttpClient(configurationName);
