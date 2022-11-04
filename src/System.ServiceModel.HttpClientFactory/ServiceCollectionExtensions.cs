@@ -42,13 +42,6 @@ public static class ServiceCollectionExtensions
             services.AddTransient(contractType, sp => sp.GetRequiredService<ClientFactory<TContract>>().CreateClient());
         }
 
-        return services.AddHttpClient(configurationName)
-            .ConfigureHttpMessageHandlerBuilder(builder =>
-            {
-                var httpMessageHandlerBehavior = builder.Services.GetRequiredService<HttpMessageHandlerBehavior>();
-                var primaryHandler = httpMessageHandlerBehavior.GetHttpClientHandler(builder.Name);
-                primaryHandler.Properties[HttpMessageHandlerBehavior.Sentinel] = true;
-                builder.PrimaryHandler = primaryHandler;
-            });
+        return services.AddHttpClient(configurationName);
     }
 }
