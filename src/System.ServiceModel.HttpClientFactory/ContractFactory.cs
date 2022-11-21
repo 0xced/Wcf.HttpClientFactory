@@ -18,51 +18,44 @@ internal class ContractFactory<TContract> where TContract : class
 
     public TContract CreateContract(ContractDescription contractDescription, Type clientType)
     {
-        var settingCreateClientBase = Environment.GetEnvironmentVariable("System.ServiceModel.HttpClientFactory.CreateClientBase");
-        if (bool.TryParse(settingCreateClientBase, out var createClientBase) && createClientBase)
+        if (AppContext.TryGetSwitch("System.ServiceModel.HttpClientFactory.CreateClientBase", out var createClientBase) && createClientBase)
         {
             return CreateClientBase(contractDescription, clientType);
         }
 
-        var settingCacheChannelFactory = Environment.GetEnvironmentVariable("System.ServiceModel.HttpClientFactory.CacheChannelFactory");
-        return CreateChannel(contractDescription, bool.TryParse(settingCacheChannelFactory, out var cacheChannelFactory) && cacheChannelFactory);
+        return CreateChannel(contractDescription);
     }
 
     private TContract CreateClientBase(ContractDescription contractDescription, Type clientType)
     {
         var binding = _clientConfigurationProvider.GetBinding(contractDescription.ConfigurationName);
         var endpointAddress = _clientConfigurationProvider.GetEndpointAddress(contractDescription.ConfigurationName);
-        var constructor = clientType.GetConstructor(new[] { typeof(Binding), typeof(EndpointAddress) })!;
+        var constructor = clientType.GetConstructor(new[] { typeof(Binding), typeof(EndpointAddress) }) ?? throw new MissingMemberException(clientType.FullName, $"{clientType.Name}(Binding, EndpointAddress)");
         var client = (ClientBase<TContract>)constructor.Invoke(new object[] { binding, endpointAddress });
         client.Endpoint.EndpointBehaviors.Add(_httpMessageHandlerBehavior);
         return client as TContract ?? throw new InvalidCastException($"Cast from {client.GetType().FullName} to {typeof(TContract).FullName} is not valid");
     }
 
-    private TContract CreateChannel(ContractDescription contractDescription, bool cacheChannelFactory)
+    private TContract CreateChannel(ContractDescription contractDescription)
     {
         ChannelFactory<TContract> channelFactory;
-        if (cacheChannelFactory)
+        if (AppContext.TryGetSwitch("System.ServiceModel.HttpClientFactory.CacheChannelFactory", out var cacheChannelFactory) && cacheChannelFactory)
         {
-            channelFactory = _channelFactories.GetOrAdd(contractDescription.ConfigurationName, configurationName =>
-            {
-                var endpoint = CreateServiceEndpoint(_clientConfigurationProvider, configurationName, contractDescription, _httpMessageHandlerBehavior);
-                return new ChannelFactory<TContract>(endpoint);
-            });
+            channelFactory = _channelFactories.GetOrAdd(contractDescription.ConfigurationName, configurationName => CreateChannelFactory(configurationName, contractDescription));
         }
         else
         {
-            var endpoint = CreateServiceEndpoint(_clientConfigurationProvider, contractDescription.ConfigurationName, contractDescription, _httpMessageHandlerBehavior);
-            channelFactory = new ChannelFactory<TContract>(endpoint);
+            channelFactory = CreateChannelFactory(contractDescription.ConfigurationName, contractDescription);
         }
         return channelFactory.CreateChannel();
     }
 
-    private static ServiceEndpoint CreateServiceEndpoint(IClientConfigurationProvider clientConfigurationProvider, string configurationName, ContractDescription contractDescription, IEndpointBehavior behavior)
+    private ChannelFactory<TContract> CreateChannelFactory(string configurationName, ContractDescription contractDescription)
     {
-        var binding = clientConfigurationProvider.GetBinding(configurationName);
-        var endpointAddress = clientConfigurationProvider.GetEndpointAddress(configurationName);
+        var binding = _clientConfigurationProvider.GetBinding(configurationName);
+        var endpointAddress = _clientConfigurationProvider.GetEndpointAddress(configurationName);
         var endpoint = new ServiceEndpoint(contractDescription, binding, endpointAddress);
-        endpoint.EndpointBehaviors.Add(behavior);
-        return endpoint;
+        endpoint.EndpointBehaviors.Add(_httpMessageHandlerBehavior);
+        return new ChannelFactory<TContract>(endpoint);
     }
 }
