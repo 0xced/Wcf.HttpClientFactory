@@ -1,52 +1,47 @@
-using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceReference;
 using Xunit;
 
 namespace System.ServiceModel.HttpClientFactory.Tests;
 
-public class ClientConfigurationProvider : IClientConfigurationProvider
+public class UnitTest : IDisposable
 {
-    public Binding GetBinding(string configurationName)
+    private readonly AssertionScope _assertionScope;
+
+    public UnitTest()
     {
-        return new BasicHttpBinding
-        {
-            MaxBufferSize = int.MaxValue,
-            ReaderQuotas = Xml.XmlDictionaryReaderQuotas.Max,
-            MaxReceivedMessageSize = int.MaxValue,
-            AllowCookies = true
-        };
+        _assertionScope = new AssertionScope();
     }
 
-    public EndpointAddress GetEndpointAddress(string configurationName)
+    public void Dispose()
     {
-        return new EndpointAddress("http://apps.learnwebservices.com/services/hello");
-    }
-}
+        AppDomain.CurrentDomain.SetData("System.ServiceModel.HttpClientFactory.CreateClientBase", null);
+        AppDomain.CurrentDomain.SetData("System.ServiceModel.HttpClientFactory.CacheChannelFactory", null);
 
-public class UnitTest
-{
-    private static readonly IServiceProvider ServiceProvider;
-
-    static UnitTest()
-    {
-        var services = new ServiceCollection();
-        services.AddContract<HelloEndpoint>();
-        ServiceProvider = services.BuildServiceProvider();
+        _assertionScope.Dispose();
     }
 
     [Theory]
-    [InlineData("Steve", "Hello Steve!")]
-    [InlineData("Jane", "Hello Jane!")]
-    [InlineData("<>", "Hello <>!")]
-    public async Task TestSayHello(string name, string greeting)
+    [CombinatorialData]
+    public async Task TestSayHello(bool createClientBase, bool cacheChannelFactory, ServiceLifetime serviceLifetime)
     {
-        var service = ServiceProvider.GetRequiredService<HelloEndpoint>();
+        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CreateClientBase", createClientBase);
+        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CacheChannelFactory", cacheChannelFactory);
 
-        var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
+        var services = new ServiceCollection();
+        services.AddContract<HelloEndpoint>(serviceLifetime);
+        await using var serviceProvider = services.BuildServiceProvider();
 
-        response.HelloResponse.Message.Should().Be(greeting);
+        foreach (var name in new[] { "Jane", "Steve" })
+        {
+            var service = serviceProvider.GetRequiredService<HelloEndpoint>();
+
+            var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
+
+            response.HelloResponse.Message.Should().Be($"Hello {name}!");
+        }
     }
 }

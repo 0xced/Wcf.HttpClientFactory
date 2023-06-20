@@ -23,24 +23,21 @@ public static class ServiceCollectionExtensions
             throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
         }
 
-        var clientTypes = contractType.Assembly.GetExportedTypes().Where(e => e.IsAssignableTo(contractType) && e.IsAssignableTo(typeof(ClientBase<TContract>)));
-        var clientType = clientTypes.Single();
-
-        services.TryAddSingleton(clientConfigurationProvider ?? new ReflectionClientConfigurationProvider(clientType));
+        services.TryAddSingleton(clientConfigurationProvider ?? new ReflectionClientConfigurationProvider());
         services.TryAddSingleton<HttpMessageHandlerBehavior>();
         services.TryAddSingleton(sp => new ContractFactory<TContract>(sp.GetRequiredService<IClientConfigurationProvider>(), sp.GetRequiredService<HttpMessageHandlerBehavior>()));
 
         if (contractLifetime == ServiceLifetime.Singleton)
         {
-            services.AddSingleton(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription, clientType));
+            services.AddSingleton(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription));
         }
         else if (contractLifetime == ServiceLifetime.Scoped)
         {
-            services.AddScoped(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription, clientType));
+            services.AddScoped(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription));
         }
         else if (contractLifetime == ServiceLifetime.Transient)
         {
-            services.AddTransient(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription, clientType));
+            services.AddTransient(sp => sp.GetRequiredService<ContractFactory<TContract>>().CreateContract(contractDescription));
         }
 
         return services.AddHttpClient(configurationName);
