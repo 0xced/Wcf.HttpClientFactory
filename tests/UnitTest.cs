@@ -56,9 +56,9 @@ public class UnitTest : IDisposable
         services.AddContract<CalculatorSoap>(contractLifetime, channelFactoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
 
+        await using var scope = serviceProvider.CreateAsyncScope();
         foreach (var number in new[] { 3, 14, 15 })
         {
-            await using var scope = serviceProvider.CreateAsyncScope();
             var service = scope.ServiceProvider.GetRequiredService<CalculatorSoap>();
 
             var response = await service.AddAsync(number, 1);
