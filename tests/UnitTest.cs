@@ -2,37 +2,39 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ServiceReference;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace System.ServiceModel.HttpClientFactory.Tests;
 
 public class UnitTest : IDisposable
 {
-    private readonly AssertionScope _assertionScope;
+    private readonly ITestOutputHelper _outputHelper;
+    private readonly AssertionScope _assertionScope = new();
 
-    public UnitTest()
+    static UnitTest()
     {
-        _assertionScope = new AssertionScope();
+        // Can only change it once, els e => System.InvalidOperationException: This value cannot be changed after the first ClientBase of type 'ServiceReference.CalculatorSoap' has been created.
+        var cacheSettingString = Environment.GetEnvironmentVariable("SYSTEM_SERVICEMODEL_HTTPCLIENTFACTORY_TESTS_CACHESETTING");
+        if (Enum.TryParse<CacheSetting>(cacheSettingString, ignoreCase: true, out var cacheSetting))
+        {
+            HelloEndpointClient.CacheSetting = cacheSetting;
+            CalculatorSoapClient.CacheSetting = cacheSetting;
+        }
     }
 
-    public void Dispose()
-    {
-        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CreateClientBase", false);
-        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CacheChannelFactory", false);
+    public UnitTest(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
-        _assertionScope.Dispose();
-    }
+    public void Dispose() => _assertionScope.Dispose();
 
     [Theory]
     [CombinatorialData]
-    public async Task TestSayHello(bool createClientBase, bool cacheChannelFactory, ServiceLifetime serviceLifetime)
+    public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
     {
-        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CreateClientBase", createClientBase);
-        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CacheChannelFactory", cacheChannelFactory);
-
         var services = new ServiceCollection();
-        services.AddContract<HelloEndpoint>(serviceLifetime);
+        services.AddContract<HelloEndpoint>(contractLifetime, channelFactoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
 
         foreach (var name in new[] { "Jane", "Steve" })
@@ -47,18 +49,16 @@ public class UnitTest : IDisposable
 
     [Theory]
     [CombinatorialData]
-    public async Task TestCalculator(bool createClientBase, bool cacheChannelFactory, ServiceLifetime serviceLifetime)
+    public async Task TestCalculator(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
     {
-        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CreateClientBase", createClientBase);
-        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CacheChannelFactory", cacheChannelFactory);
-
         var services = new ServiceCollection();
-        services.AddContract<CalculatorSoap>(serviceLifetime);
+        services.AddLogging(c => c.AddXUnit(_outputHelper));
+        services.AddContract<CalculatorSoap>(contractLifetime, channelFactoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
 
         foreach (var number in new[] { 3, 14, 15 })
         {
-            using var scope = serviceProvider.CreateScope();
+            await using var scope = serviceProvider.CreateAsyncScope();
             var service = scope.ServiceProvider.GetRequiredService<CalculatorSoap>();
 
             var response = await service.AddAsync(number, 1);
