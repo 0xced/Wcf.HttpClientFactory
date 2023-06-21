@@ -17,3 +17,13 @@ dotnet new classlib
 dotnet svcutil "https://apps.learnwebservices.com/services/hello?WSDL"
 ```
 
+## Generating the Calculator web service
+
+```
+cd src/CalculatorService
+dotnet svcutil --targetFramework net6.0 --namespace "*, ServiceReference" "http://www.dneonline.com/calculator.asmx?wsdl"
+dotnet new classlib -f net6.0
+dotnet add package System.ServiceModel.Http --version 6.0.0
+rm Class1.cs
+```
+

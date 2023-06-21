@@ -18,8 +18,8 @@ public class UnitTest : IDisposable
 
     public void Dispose()
     {
-        AppDomain.CurrentDomain.SetData("System.ServiceModel.HttpClientFactory.CreateClientBase", null);
-        AppDomain.CurrentDomain.SetData("System.ServiceModel.HttpClientFactory.CacheChannelFactory", null);
+        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CreateClientBase", false);
+        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CacheChannelFactory", false);
 
         _assertionScope.Dispose();
     }
@@ -42,6 +42,28 @@ public class UnitTest : IDisposable
             var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
 
             response.HelloResponse.Message.Should().Be($"Hello {name}!");
+        }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task TestCalculator(bool createClientBase, bool cacheChannelFactory, ServiceLifetime serviceLifetime)
+    {
+        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CreateClientBase", createClientBase);
+        AppContext.SetSwitch("System.ServiceModel.HttpClientFactory.CacheChannelFactory", cacheChannelFactory);
+
+        var services = new ServiceCollection();
+        services.AddContract<CalculatorSoap>(serviceLifetime);
+        await using var serviceProvider = services.BuildServiceProvider();
+
+        foreach (var number in new[] { 3, 14, 15 })
+        {
+            using var scope = serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<CalculatorSoap>();
+
+            var response = await service.AddAsync(number, 1);
+
+            response.Should().Be(number + 1);
         }
     }
 }
