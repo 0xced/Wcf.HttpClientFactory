@@ -13,8 +13,10 @@ See [Singleton WCF Client doesn't respect DNS changes][2] and [Leverage HttpClie
 
 ```
 cd src/HelloService
-dotnet new classlib
-dotnet svcutil "https://apps.learnwebservices.com/services/hello?WSDL"
+dotnet svcutil --targetFramework net6.0 --namespace "*, ServiceReference" "https://apps.learnwebservices.com/services/hello?WSDL"
+dotnet new classlib -f net6.0
+dotnet add package System.ServiceModel.Http --version 6.0.0
+rm Class1.cs
 ```
 
 ## Generating the Calculator web service

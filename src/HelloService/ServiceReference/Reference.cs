@@ -182,6 +182,7 @@ namespace ServiceReference
                 result.ReaderQuotas = System.Xml.XmlDictionaryReaderQuotas.Max;
                 result.MaxReceivedMessageSize = int.MaxValue;
                 result.AllowCookies = true;
+                result.Security.Mode = System.ServiceModel.BasicHttpSecurityMode.Transport;
                 return result;
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
@@ -191,7 +192,7 @@ namespace ServiceReference
         {
             if ((endpointConfiguration == EndpointConfiguration.HelloEndpointPort))
             {
-                return new System.ServiceModel.EndpointAddress("http://apps.learnwebservices.com/services/hello");
+                return new System.ServiceModel.EndpointAddress("https://apps.learnwebservices.com/services/hello");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
