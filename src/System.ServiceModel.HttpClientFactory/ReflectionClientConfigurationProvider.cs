@@ -6,6 +6,11 @@ namespace System.ServiceModel.HttpClientFactory;
 
 internal class ReflectionClientConfigurationProvider : IClientConfigurationProvider
 {
+    public string GetName(ContractDescription contractDescription)
+    {
+        return contractDescription.ConfigurationName;
+    }
+
     public Binding GetBinding(ContractDescription contractDescription)
     {
         var clientType = contractDescription.GetClientType();

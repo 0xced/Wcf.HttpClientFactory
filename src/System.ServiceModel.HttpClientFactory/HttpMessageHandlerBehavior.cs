@@ -13,16 +13,20 @@ namespace System.ServiceModel.HttpClientFactory;
 internal class HttpMessageHandlerBehavior : IEndpointBehavior
 {
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
+    private readonly IClientConfigurationProvider _clientConfigurationProvider;
 
-    public HttpMessageHandlerBehavior(IHttpMessageHandlerFactory messageHandlerFactory)
-        => _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
+    public HttpMessageHandlerBehavior(IHttpMessageHandlerFactory messageHandlerFactory, IClientConfigurationProvider clientConfigurationProvider)
+    {
+        _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
+        _clientConfigurationProvider = clientConfigurationProvider ?? throw new ArgumentNullException(nameof(clientConfigurationProvider));
+    }
 
     public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {
         HttpMessageHandler CreateHttpMessageHandler(HttpClientHandler clientHandler)
         {
-            var handlerName = endpoint.Contract.ConfigurationName ?? throw new InvalidOperationException($"The configuration name of the contract {endpoint.Contract.ContractType.FullName} can not be null");
-            var messageHandler =  _httpMessageHandlerFactory.CreateHandler(handlerName);
+            var name = _clientConfigurationProvider.GetValidName(endpoint.Contract);
+            var messageHandler =  _httpMessageHandlerFactory.CreateHandler(name);
             SetPrimaryHttpClientHandler(messageHandler, clientHandler);
             return messageHandler;
         }
