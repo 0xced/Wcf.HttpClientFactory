@@ -31,7 +31,7 @@ public class UnitTest : IDisposable
 
     [Theory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
+    public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime channelFactoryLifetime)
     {
         var services = new ServiceCollection();
         services.AddContract<HelloEndpoint>(contractLifetime, channelFactoryLifetime);
@@ -49,7 +49,7 @@ public class UnitTest : IDisposable
 
     [Theory]
     [CombinatorialData]
-    public async Task TestCalculator(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
+    public async Task TestCalculator(ServiceLifetime contractLifetime, ServiceLifetime channelFactoryLifetime)
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
