@@ -4,31 +4,33 @@ using System.ServiceModel.Description;
 
 namespace System.ServiceModel.HttpClientFactory;
 
-public class ContractConfiguration : IContractConfiguration
+public class ContractConfiguration<TContract> : IContractConfiguration<TContract>
 {
-    public virtual string GetName(ContractDescription contractDescription)
+    protected readonly ContractDescription ContractDescription = ContractDescription.GetContract(typeof(TContract));
+
+    public virtual string GetName()
     {
-        return contractDescription.ConfigurationName;
+        return ContractDescription.ConfigurationName;
     }
 
-    public virtual ServiceEndpoint GetServiceEndpoint(ContractDescription contractDescription)
+    public virtual ServiceEndpoint GetServiceEndpoint()
     {
-        var binding = GetBinding(contractDescription);
-        var address = GetEndpointAddress(contractDescription);
-        var clientCredentials = GetClientCredentials(contractDescription);
-        var serviceEndpoint = new ServiceEndpoint(contractDescription, binding, address);
+        var binding = GetBinding();
+        var address = GetEndpointAddress();
+        var clientCredentials = GetClientCredentials();
+        var serviceEndpoint = new ServiceEndpoint(ContractDescription, binding, address);
         serviceEndpoint.EndpointBehaviors.Add(clientCredentials);
         return serviceEndpoint;
     }
 
-    public virtual ChannelFactory<TContract> CreateChannelFactory<TContract>(ServiceEndpoint serviceEndpoint)
+    public virtual ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
     {
         return new ChannelFactory<TContract>(serviceEndpoint);
     }
 
-    public virtual Binding GetBinding(ContractDescription contractDescription)
+    public virtual Binding GetBinding()
     {
-        var clientType = contractDescription.GetClientType();
+        var clientType = ContractDescription.GetClientType();
 
         var getDefaultBinding = clientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultBinding != null)
@@ -41,9 +43,9 @@ public class ContractConfiguration : IContractConfiguration
         throw new MissingMethodException(MissingMethodMessage(clientType, "GetBindingForEndpoint"));
     }
 
-    public virtual EndpointAddress GetEndpointAddress(ContractDescription contractDescription)
+    public virtual EndpointAddress GetEndpointAddress()
     {
-        var clientType = contractDescription.GetClientType();
+        var clientType = ContractDescription.GetClientType();
 
         var getDefaultEndpointAddress = clientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultEndpointAddress != null)
@@ -56,7 +58,7 @@ public class ContractConfiguration : IContractConfiguration
         throw new MissingMethodException(MissingMethodMessage(clientType, "GetEndpointAddress"));
     }
 
-    public virtual ClientCredentials GetClientCredentials(ContractDescription contractDescription)
+    public virtual ClientCredentials GetClientCredentials()
     {
         return new ClientCredentials();
     }

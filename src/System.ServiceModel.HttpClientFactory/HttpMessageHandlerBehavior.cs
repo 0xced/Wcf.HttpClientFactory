@@ -1,6 +1,7 @@
 ﻿using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace System.ServiceModel.HttpClientFactory;
 
@@ -13,19 +14,21 @@ namespace System.ServiceModel.HttpClientFactory;
 internal class HttpMessageHandlerBehavior : IEndpointBehavior
 {
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
-    private readonly IContractConfiguration _contractConfiguration;
+    private readonly IServiceProvider _serviceProvider;
 
-    public HttpMessageHandlerBehavior(IHttpMessageHandlerFactory messageHandlerFactory, IContractConfiguration contractConfiguration)
+    public HttpMessageHandlerBehavior(IHttpMessageHandlerFactory messageHandlerFactory, IServiceProvider serviceProvider)
     {
         _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
-        _contractConfiguration = contractConfiguration ?? throw new ArgumentNullException(nameof(contractConfiguration));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
     public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {
         HttpMessageHandler CreateHttpMessageHandler(HttpClientHandler clientHandler)
         {
-            var name = _contractConfiguration.GetValidName(endpoint.Contract);
+            var contractConfigurationType = typeof(IContractConfiguration<>).MakeGenericType(endpoint.Contract.ContractType);
+            var contractConfiguration = (IContractConfiguration)_serviceProvider.GetRequiredService(contractConfigurationType);
+            var name = contractConfiguration.GetValidName();
             var messageHandler =  _httpMessageHandlerFactory.CreateHandler(name);
             SetPrimaryHttpClientHandler(messageHandler, clientHandler);
             return messageHandler;
