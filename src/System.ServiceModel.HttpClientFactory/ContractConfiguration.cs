@@ -22,7 +22,7 @@ public class ContractConfiguration
     {
         var binding = GetBinding();
         var address = GetEndpointAddress();
-        var clientCredentials = GetClientCredentials();
+        var clientCredentials = GetClientCredentials(binding, address);
         var serviceEndpoint = new ServiceEndpoint(ContractDescription, binding, address);
         serviceEndpoint.EndpointBehaviors.Add(clientCredentials);
         return serviceEndpoint;
@@ -58,7 +58,7 @@ public class ContractConfiguration
         throw new MissingMethodException(MissingMethodMessage(clientType, "GetEndpointAddress"));
     }
 
-    public virtual ClientCredentials GetClientCredentials()
+    public virtual ClientCredentials GetClientCredentials(Binding binding, EndpointAddress address)
     {
         return new ClientCredentials();
     }
