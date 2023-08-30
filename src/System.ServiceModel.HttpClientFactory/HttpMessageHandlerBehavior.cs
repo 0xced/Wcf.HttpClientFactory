@@ -24,16 +24,16 @@ internal class HttpMessageHandlerBehavior : IEndpointBehavior
 
     public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {
-        HttpMessageHandler CreateHttpMessageHandler(HttpClientHandler clientHandler)
+        var contractConfigurationType = typeof(ContractConfiguration<>).MakeGenericType(endpoint.Contract.ContractType);
+        var contractConfiguration = (ContractConfiguration)_serviceProvider.GetRequiredService(contractConfigurationType);
+        var httpClientName = contractConfiguration.GetValidHttpClientName();
+
+        bindingParameters.Add((Func<HttpClientHandler, HttpMessageHandler>)(clientHandler =>
         {
-            var contractConfigurationType = typeof(ContractConfiguration<>).MakeGenericType(endpoint.Contract.ContractType);
-            var contractConfiguration = (ContractConfiguration)_serviceProvider.GetRequiredService(contractConfigurationType);
-            var name = contractConfiguration.GetValidHttpClientName();
-            var messageHandler =  _httpMessageHandlerFactory.CreateHandler(name);
+            var messageHandler =  _httpMessageHandlerFactory.CreateHandler(httpClientName);
             SetPrimaryHttpClientHandler(messageHandler, clientHandler);
             return messageHandler;
-        }
-        bindingParameters.Add((Func<HttpClientHandler, HttpMessageHandler>)CreateHttpMessageHandler);
+        }));
     }
 
     private static void SetPrimaryHttpClientHandler(HttpMessageHandler messageHandler, HttpClientHandler primaryHandler)
