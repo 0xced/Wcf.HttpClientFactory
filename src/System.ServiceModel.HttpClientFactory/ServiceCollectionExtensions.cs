@@ -8,7 +8,7 @@ public static class ServiceCollectionExtensions
     public static IHttpClientBuilder AddContract<TContract>(this IServiceCollection services,
         ServiceLifetime contractLifetime = ServiceLifetime.Transient,
         ServiceLifetime channelFactoryLifetime = ServiceLifetime.Singleton,
-        IContractConfiguration<TContract>? contractConfiguration = null)
+        ContractConfiguration<TContract>? contractConfiguration = null)
         where TContract : class
     {
         var configuration = contractConfiguration ?? new ContractConfiguration<TContract>();
@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
 
     private static ChannelFactory<TContract> CreateChannelFactory<TContract>(IServiceProvider serviceProvider)
     {
-        var configuration = serviceProvider.GetRequiredService<IContractConfiguration<TContract>>();
+        var configuration = serviceProvider.GetRequiredService<ContractConfiguration<TContract>>();
         var httpMessageHandlerBehavior = serviceProvider.GetRequiredService<HttpMessageHandlerBehavior>();
 
         var endpoint = configuration.GetServiceEndpoint();

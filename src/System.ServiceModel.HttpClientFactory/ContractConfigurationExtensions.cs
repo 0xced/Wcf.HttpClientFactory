@@ -2,7 +2,7 @@ namespace System.ServiceModel.HttpClientFactory;
 
 internal static class ContractConfigurationExtensions
 {
-    public static string GetValidName(this IContractConfiguration configuration)
+    public static string GetValidName(this ContractConfiguration configuration)
     {
         var name = configuration.GetName();
         if (name == null) throw new InvalidOperationException($"{configuration.GetType().FullName}.GetName() must not return null.");

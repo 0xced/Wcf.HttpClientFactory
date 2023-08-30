@@ -4,9 +4,14 @@ using System.ServiceModel.Description;
 
 namespace System.ServiceModel.HttpClientFactory;
 
-public class ContractConfiguration<TContract> : IContractConfiguration<TContract>
+public class ContractConfiguration
 {
-    protected readonly ContractDescription ContractDescription = ContractDescription.GetContract(typeof(TContract));
+    protected readonly ContractDescription ContractDescription;
+
+    protected ContractConfiguration(Type contractType)
+    {
+        ContractDescription = ContractDescription.GetContract(contractType);
+    }
 
     public virtual string GetName()
     {
@@ -21,11 +26,6 @@ public class ContractConfiguration<TContract> : IContractConfiguration<TContract
         var serviceEndpoint = new ServiceEndpoint(ContractDescription, binding, address);
         serviceEndpoint.EndpointBehaviors.Add(clientCredentials);
         return serviceEndpoint;
-    }
-
-    public virtual ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
-    {
-        return new ChannelFactory<TContract>(serviceEndpoint);
     }
 
     public virtual Binding GetBinding()
@@ -67,5 +67,17 @@ public class ContractConfiguration<TContract> : IContractConfiguration<TContract
     {
         return $"The method {clientType.FullName}.{missingMethodName} was not found. " +
                $"Was {clientType.FullName} generated with the https://www.nuget.org/packages/dotnet-svcutil tool?";
+    }
+}
+
+public class ContractConfiguration<TContract> : ContractConfiguration
+{
+    public ContractConfiguration() : base(typeof(TContract))
+    {
+    }
+
+    public virtual ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
+    {
+        return new ChannelFactory<TContract>(serviceEndpoint);
     }
 }
