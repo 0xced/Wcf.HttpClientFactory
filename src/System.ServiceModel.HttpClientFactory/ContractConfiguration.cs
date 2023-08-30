@@ -13,9 +13,9 @@ public class ContractConfiguration
         ContractDescription = ContractDescription.GetContract(contractType);
     }
 
-    public virtual string GetName()
+    public virtual string GetHttpClientName()
     {
-        return ContractDescription.ConfigurationName;
+        return ContractDescription.ContractType.AssemblyQualifiedName!;
     }
 
     public virtual ServiceEndpoint GetServiceEndpoint()

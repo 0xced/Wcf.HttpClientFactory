@@ -28,7 +28,7 @@ internal class HttpMessageHandlerBehavior : IEndpointBehavior
         {
             var contractConfigurationType = typeof(ContractConfiguration<>).MakeGenericType(endpoint.Contract.ContractType);
             var contractConfiguration = (ContractConfiguration)_serviceProvider.GetRequiredService(contractConfigurationType);
-            var name = contractConfiguration.GetValidName();
+            var name = contractConfiguration.GetValidHttpClientName();
             var messageHandler =  _httpMessageHandlerFactory.CreateHandler(name);
             SetPrimaryHttpClientHandler(messageHandler, clientHandler);
             return messageHandler;

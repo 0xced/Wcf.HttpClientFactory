@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
         where TContract : class
     {
         var configuration = contractConfiguration ?? new ContractConfiguration<TContract>();
-        var name = configuration.GetValidName();
+        var name = configuration.GetValidHttpClientName();
 
         var contractType = typeof(TContract);
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);

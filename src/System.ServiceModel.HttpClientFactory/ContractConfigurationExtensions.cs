@@ -2,11 +2,11 @@ namespace System.ServiceModel.HttpClientFactory;
 
 internal static class ContractConfigurationExtensions
 {
-    public static string GetValidName(this ContractConfiguration configuration)
+    public static string GetValidHttpClientName(this ContractConfiguration configuration)
     {
-        var name = configuration.GetName();
-        if (name == null) throw new InvalidOperationException($"{configuration.GetType().FullName}.GetName() must not return null.");
-        if (name.Length == 0) throw new InvalidOperationException($"{configuration.GetType().FullName}.GetName() must not return an empty sting.");
+        var name = configuration.GetHttpClientName();
+        if (name == null) throw new InvalidOperationException($"{configuration.GetType().FullName}.GetHttpClientName() must not return null.");
+        if (name.Length == 0) throw new InvalidOperationException($"{configuration.GetType().FullName}.GetHttpClientName() must not return an empty sting.");
         return name;
     }
 }
