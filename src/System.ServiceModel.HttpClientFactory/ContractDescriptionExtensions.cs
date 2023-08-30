@@ -14,7 +14,7 @@ internal static class ContractDescriptionExtensions
         {
             var clientBaseType = typeof(ClientBase<>).MakeGenericType(contractType);
             var assembly = contractType.Assembly;
-            var clientTypes = assembly.GetExportedTypes().Where(e => e.IsAssignableTo(contractType) && e.IsAssignableTo(clientBaseType)).ToList();
+            var clientTypes = assembly.GetTypes().Where(e => e.IsAssignableTo(contractType) && e.IsAssignableTo(clientBaseType)).ToList();
             return clientTypes.Count switch
             {
                 0 => throw new InvalidOperationException($"No ClientBase<{contractType.FullName}> implementing the {contractType.FullName} contract were found in {assembly}"),
