@@ -18,6 +18,14 @@ public class ContractConfiguration
         return ContractDescription.ContractType.AssemblyQualifiedName!;
     }
 
+    internal string GetValidHttpClientName()
+    {
+        var name = GetHttpClientName();
+        if (name == null) throw new InvalidOperationException($"{GetType().FullName}.GetHttpClientName() must not return null.");
+        if (name.Length == 0) throw new InvalidOperationException($"{GetType().FullName}.GetHttpClientName() must not return an empty sting.");
+        return name;
+    }
+
     public virtual ServiceEndpoint GetServiceEndpoint()
     {
         var binding = GetBinding();
