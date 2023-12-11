@@ -1,0 +1,15 @@
+{
+  "providerId": "Microsoft.Tools.ServiceModel.Svcutil",
+  "version": "2.1.0",
+  "options": {
+    "inputs": [
+      "https://ebill-ki.postfinance.ch/B2BService/B2BService.svc"
+    ],
+    "namespaceMappings": [
+      "*, ServiceReference"
+    ],
+    "outputFile": "Reference.cs",
+    "targetFramework": "net6.0",
+    "typeReuseMode": "All"
+  }
+}

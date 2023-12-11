@@ -71,7 +71,7 @@ public class ContractConfiguration
         throw new MissingMethodException(MissingMethodMessage(ClientType, "GetEndpointAddress"));
     }
 
-    protected internal virtual void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
+    protected virtual void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
     {
     }
 
@@ -99,7 +99,9 @@ public class ContractConfiguration<TContract> : ContractConfiguration
 
     internal ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
     {
-        return new ConfigurationChannelFactory<TContract>(this, serviceEndpoint);
+        var channelFactory = new ChannelFactory<TContract>(serviceEndpoint);
+        ConfigureEndpoint(channelFactory.Endpoint, channelFactory.Credentials);
+        return channelFactory;
     }
 
     internal ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
@@ -128,5 +130,4 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         }
         return client;
     }
-
 }

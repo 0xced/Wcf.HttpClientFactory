@@ -17,9 +17,11 @@
     <PackageReference Include="xunit" Version="2.6.3" />
     <PackageReference Include="Xunit.Combinatorial" Version="1.6.24" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.5" PrivateAssets="all" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\src\B2BService\B2BService.csproj" />
     <ProjectReference Include="..\src\CalculatorService\CalculatorService.csproj" />
     <ProjectReference Include="..\src\HelloService\HelloService.csproj" />
     <ProjectReference Include="..\src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj" />

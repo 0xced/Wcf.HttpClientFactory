@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloService", "src\HelloSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculatorService", "src\CalculatorService\CalculatorService.csproj", "{16BBDAEA-104B-4321-BE11-94531D202272}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "B2BService", "src\B2BService\B2BService.csproj", "{4BE923A8-42EA-4660-96BE-72727FFC3F82}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{16BBDAEA-104B-4321-BE11-94531D202272}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16BBDAEA-104B-4321-BE11-94531D202272}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16BBDAEA-104B-4321-BE11-94531D202272}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
