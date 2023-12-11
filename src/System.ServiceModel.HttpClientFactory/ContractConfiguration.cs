@@ -72,6 +72,7 @@ public class ContractConfiguration
 }
 
 public class ContractConfiguration<TContract> : ContractConfiguration
+    where TContract : class
 {
     public ContractConfiguration() : base(typeof(TContract))
     {
@@ -80,5 +81,28 @@ public class ContractConfiguration<TContract> : ContractConfiguration
     public virtual ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
     {
         return new ChannelFactory<TContract>(serviceEndpoint);
+    }
+
+    public virtual ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
+    {
+        var clientType = ContractDescription.GetClientType();
+        var constructor = clientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(ServiceEndpoint) }, null);
+        if (constructor == null)
+        {
+            var namespaceLines = clientType.Namespace == null ? "" : $"{Environment.NewLine}namespace {clientType.Namespace};{Environment.NewLine}";
+            var message = $$"""
+                            The {{clientType.Name}} class is missing a constructor taking a ServiceEndpoint parameter. Please add the following code in your project:
+                            {{namespaceLines}}
+                            public partial class {{clientType.Name}}
+                            {
+                                public {{clientType.Name}}(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
+                                {
+                                }
+                            }
+                            """.ReplaceLineEndings();
+            throw new MissingMemberException(message);
+        }
+        var client = (ClientBase<TContract>)constructor.Invoke(new object[] { serviceEndpoint });
+        return client;
     }
 }
