@@ -1,7 +1,6 @@
 ﻿using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace System.ServiceModel.HttpClientFactory;
 
@@ -13,24 +12,21 @@ namespace System.ServiceModel.HttpClientFactory;
 /// </summary>
 internal class HttpMessageHandlerBehavior : IEndpointBehavior
 {
+    private readonly ContractMappingRegistry _contractMappingRegistry;
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
-    private readonly IServiceProvider _serviceProvider;
 
-    public HttpMessageHandlerBehavior(IHttpMessageHandlerFactory messageHandlerFactory, IServiceProvider serviceProvider)
+    public HttpMessageHandlerBehavior(ContractMappingRegistry contractMappingRegistry, IHttpMessageHandlerFactory messageHandlerFactory)
     {
+        _contractMappingRegistry = contractMappingRegistry ?? throw new ArgumentNullException(nameof(contractMappingRegistry));
         _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
-        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
     public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {
-        var contractConfigurationType = typeof(ContractConfiguration<>).MakeGenericType(endpoint.Contract.ContractType);
-        var contractConfiguration = (ContractConfiguration)_serviceProvider.GetRequiredService(contractConfigurationType);
-        var httpClientName = contractConfiguration.GetValidHttpClientName();
-
         bindingParameters.Add((Func<HttpClientHandler, HttpMessageHandler>)(clientHandler =>
         {
-            var messageHandler =  _httpMessageHandlerFactory.CreateHandler(httpClientName);
+            var httpClientName = _contractMappingRegistry.GetHttpClientName(endpoint.Contract.ContractType);
+            var messageHandler = _httpMessageHandlerFactory.CreateHandler(httpClientName);
             SetPrimaryHttpClientHandler(messageHandler, clientHandler);
             return messageHandler;
         }));

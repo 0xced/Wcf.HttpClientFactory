@@ -13,17 +13,10 @@ public class ContractConfiguration
         ContractDescription = ContractDescription.GetContract(contractType);
     }
 
-    public virtual string GetHttpClientName()
+    internal static string GetHttpClientName<TContract, TConfiguration>()
     {
-        return ContractDescription.ContractType.AssemblyQualifiedName!;
-    }
-
-    internal string GetValidHttpClientName()
-    {
-        var name = GetHttpClientName();
-        if (name == null) throw new InvalidOperationException($"{GetType().FullName}.GetHttpClientName() must not return null.");
-        if (name.Length == 0) throw new InvalidOperationException($"{GetType().FullName}.GetHttpClientName() must not return an empty sting.");
-        return name;
+        var httpClientName = typeof(TConfiguration).GetCustomAttribute<HttpClientAttribute>()?.Name;
+        return httpClientName ?? ContractDescription.GetContract(typeof(TContract)).Name;
     }
 
     public virtual ServiceEndpoint GetServiceEndpoint()
