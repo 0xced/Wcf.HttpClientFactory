@@ -13,6 +13,7 @@ public class UnitTest : IDisposable
 {
     private readonly ITestOutputHelper _outputHelper;
     private readonly AssertionScope _assertionScope = new();
+    private readonly WcfEventListener _eventListener;
 
     static UnitTest()
     {
@@ -25,9 +26,17 @@ public class UnitTest : IDisposable
         }
     }
 
-    public UnitTest(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public UnitTest(ITestOutputHelper outputHelper)
+    {
+        _outputHelper = outputHelper;
+        _eventListener = new WcfEventListener(outputHelper);
+    }
 
-    public void Dispose() => _assertionScope.Dispose();
+    public void Dispose()
+    {
+        _eventListener.Dispose();
+        _assertionScope.Dispose();
+    }
 
     [SkippableTheory]
     [CombinatorialData]
