@@ -29,10 +29,12 @@ public class UnitTest : IDisposable
 
     public void Dispose() => _assertionScope.Dispose();
 
-    [Theory]
+    [SkippableTheory]
     [CombinatorialData]
     public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
     {
+        Skip.If(contractLifetime == ServiceLifetime.Transient && channelFactoryLifetime == ServiceLifetime.Transient, "Transient contract + channel factory is not supported");
+
         var services = new ServiceCollection();
         services.AddContract<HelloEndpoint>(contractLifetime, channelFactoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
@@ -47,10 +49,12 @@ public class UnitTest : IDisposable
         }
     }
 
-    [Theory]
+    [SkippableTheory]
     [CombinatorialData]
     public async Task TestCalculator(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
     {
+        Skip.If(contractLifetime == ServiceLifetime.Transient && channelFactoryLifetime == ServiceLifetime.Transient, "Transient contract + channel factory is not supported");
+
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
         services.AddContract<CalculatorSoap>(contractLifetime, channelFactoryLifetime);
