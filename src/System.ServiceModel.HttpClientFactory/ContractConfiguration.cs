@@ -126,7 +126,7 @@ public class ContractConfiguration<TContract> : ContractConfiguration
             var message = $$"""
                             The {{clientType.Name}} class is missing a constructor taking a ServiceEndpoint parameter. Please add the following code in your project:
                             {{namespaceLines}}
-                            public partial class {{clientType.Name}}
+                            {{(clientType.IsPublic ? "public" : "internal")}} partial class {{clientType.Name}}
                             {
                                 public {{clientType.Name}}(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
                                 {
