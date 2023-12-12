@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace System.ServiceModel.HttpClientFactory;
@@ -9,7 +10,7 @@ public static class ServiceCollectionExtensions
 
     public static IHttpClientBuilder AddContract<TContract>(
         this IServiceCollection services,
-        ServiceLifetime contractLifetime = ServiceLifetime.Scoped,
+        ServiceLifetime contractLifetime = ServiceLifetime.Transient,
         ServiceLifetime? channelFactoryLifetime = null)
         where TContract : class
     {
@@ -17,7 +18,7 @@ public static class ServiceCollectionExtensions
     }
 
     public static IHttpClientBuilder AddContract<TContract, TConfiguration>(this IServiceCollection services,
-        ServiceLifetime contractLifetime = ServiceLifetime.Scoped,
+        ServiceLifetime contractLifetime = ServiceLifetime.Transient,
         ServiceLifetime? channelFactoryLifetime = null)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
@@ -25,6 +26,8 @@ public static class ServiceCollectionExtensions
         var httpClientName = ContractConfiguration.GetHttpClientName<TContract, TConfiguration>();
         if (httpClientName == null) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be null.", nameof(TContract));
         if (httpClientName.Length == 0) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be an empty sting.", nameof(TContract));
+
+        EnsureValidCacheSetting<TContract>(contractLifetime, channelFactoryLifetime);
 
         var contractType = typeof(TContract);
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);
@@ -50,6 +53,35 @@ public static class ServiceCollectionExtensions
         }
 
         return services.AddHttpClient(httpClientName);
+    }
+
+    private static void EnsureValidCacheSetting<TContract>(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
+        where TContract : class
+    {
+        if (contractLifetime != ServiceLifetime.Transient || channelFactoryLifetime != null)
+            return;
+
+        var clientType = ContractConfiguration<TContract>.ContractDescription.GetClientType();
+        const string cacheSettingName = nameof(ClientBase<TContract>.CacheSetting);
+        var cacheSettingProperty = clientType.BaseType?.GetProperty(cacheSettingName, BindingFlags.Public | BindingFlags.Static)
+                                   ?? throw new MissingMethodException(clientType.FullName, cacheSettingName);
+        var cacheSetting = cacheSettingProperty.GetValue(null) as CacheSetting?;
+        if (cacheSetting == CacheSetting.AlwaysOn)
+            return;
+
+        var message = $"""
+                      The {nameof(ServiceLifetime.Transient)} contract lifetime can only be used if "{clientType.Name}" cache setting is always on.
+                      Either change the "{nameof(contractLifetime)}" to something else than {nameof(ServiceLifetime.Transient)} or set the cache setting to always on the client with the following code:
+                      
+                      {clientType.Name}.{cacheSettingName} = {nameof(CacheSetting)}.{nameof(CacheSetting.AlwaysOn)};
+
+                      """.ReplaceLineEndings();
+        throw new InvalidOperationException(message);
+    }
+
+    private static void EnsureValidCacheSetting<TContract>()
+        where TContract : class
+    {
     }
 
     private static TContract CreateClient<TContract, TConfiguration>(IServiceProvider serviceProvider)
@@ -78,7 +110,10 @@ public static class ServiceCollectionExtensions
         var httpMessageHandlerBehavior = serviceProvider.GetRequiredService<HttpMessageHandlerBehavior>();
 
         var endpoint = configuration.GetServiceEndpoint();
-        endpoint.EndpointBehaviors.Add(httpMessageHandlerBehavior);
+        if (!endpoint.EndpointBehaviors.Contains(typeof(HttpMessageHandlerBehavior)))
+        { 
+            endpoint.EndpointBehaviors.Add(httpMessageHandlerBehavior); 
+        } 
 
         return (configuration, endpoint);
     }

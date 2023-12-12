@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
@@ -6,11 +7,15 @@ namespace System.ServiceModel.HttpClientFactory;
 
 public class ContractConfiguration
 {
-    protected readonly ContractDescription ContractDescription;
+    private Binding? _binding;
+    private EndpointAddress? _endpointAddress;
+    private ClientCredentials? _clientCredentials;
+    private readonly ContractDescription _contractDescription;
+    private readonly ConcurrentDictionary<(ContractDescription ContractDescription, Binding Binding, EndpointAddress EndpointAddress, ClientCredentials ClientCredentials), ServiceEndpoint> _cache = new();
 
-    protected ContractConfiguration(Type contractType)
+    protected ContractConfiguration(ContractDescription contractDescription)
     {
-        ContractDescription = ContractDescription.GetContract(contractType);
+        _contractDescription = contractDescription;
     }
 
     internal static string GetHttpClientName<TContract, TConfiguration>()
@@ -22,46 +27,72 @@ public class ContractConfiguration
     public virtual ServiceEndpoint GetServiceEndpoint()
     {
         var binding = GetBinding();
-        var address = GetEndpointAddress();
-        var clientCredentials = GetClientCredentials(binding, address);
-        var serviceEndpoint = new ServiceEndpoint(ContractDescription, binding, address);
-        serviceEndpoint.EndpointBehaviors.Add(clientCredentials);
-        return serviceEndpoint;
+        var endpointAddress = GetEndpointAddress();
+        var clientCredentials = GetClientCredentials(binding, endpointAddress);
+        return _cache.GetOrAdd((_contractDescription, binding, endpointAddress, clientCredentials), key =>
+        {
+            var serviceEndpoint = new ServiceEndpoint(key.ContractDescription, key.Binding, key.EndpointAddress);
+            serviceEndpoint.EndpointBehaviors.Add(key.ClientCredentials);
+            return serviceEndpoint;
+        });
     }
 
     public virtual Binding GetBinding()
     {
-        var clientType = ContractDescription.GetClientType();
+        if (_binding != null)
+        {
+            return _binding;
+        }
+
+        var clientType = _contractDescription.GetClientType();
 
         var getDefaultBinding = clientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultBinding != null)
-            return (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{clientType.FullName}.{getDefaultBinding.Name} returned null"));
+        {
+            _binding = (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{clientType.FullName}.{getDefaultBinding.Name} returned null"));
+            return _binding;
+        }
 
         var getBindingForEndpoint = clientType.GetMethod("GetBindingForEndpoint", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getBindingForEndpoint != null)
-            return (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{clientType.FullName}.{getBindingForEndpoint.Name} returned null"));
+        {
+            _binding = (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{clientType.FullName}.{getBindingForEndpoint.Name} returned null"));
+            return _binding;
+        }
 
         throw new MissingMethodException(MissingMethodMessage(clientType, "GetBindingForEndpoint"));
     }
 
     public virtual EndpointAddress GetEndpointAddress()
     {
-        var clientType = ContractDescription.GetClientType();
+        if (_endpointAddress != null)
+        {
+            return _endpointAddress;
+        }
+
+        var clientType = _contractDescription.GetClientType();
 
         var getDefaultEndpointAddress = clientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultEndpointAddress != null)
-            return (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{clientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
+        {
+            _endpointAddress = (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{clientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
+            return _endpointAddress;
+        }
 
         var getEndpointAddress = clientType.GetMethod("GetEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getEndpointAddress != null)
-            return (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{clientType.FullName}.{getEndpointAddress.Name} returned null"));
+        {
+            _endpointAddress = (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{clientType.FullName}.{getEndpointAddress.Name} returned null"));
+            return _endpointAddress;
+        }
 
         throw new MissingMethodException(MissingMethodMessage(clientType, "GetEndpointAddress"));
     }
 
     public virtual ClientCredentials GetClientCredentials(Binding binding, EndpointAddress address)
     {
-        return new ClientCredentials();
+        _clientCredentials ??= new ClientCredentials();
+        return _clientCredentials;
     }
 
     private static string MissingMethodMessage(Type clientType, string missingMethodName)
@@ -74,7 +105,9 @@ public class ContractConfiguration
 public class ContractConfiguration<TContract> : ContractConfiguration
     where TContract : class
 {
-    public ContractConfiguration() : base(typeof(TContract))
+    internal static ContractDescription ContractDescription { get; } = ContractDescription.GetContract(typeof(TContract));
+
+    public ContractConfiguration() : base(ContractDescription)
     {
     }
 
@@ -99,6 +132,7 @@ public class ContractConfiguration<TContract> : ContractConfiguration
                                 {
                                 }
                             }
+
                             """.ReplaceLineEndings();
             throw new MissingMemberException(message);
         }
