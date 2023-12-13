@@ -21,11 +21,8 @@ public class ContractConfiguration
     {
         var binding = GetBinding();
         var endpointAddress = GetEndpointAddress();
-        return _cache.GetOrAdd((_contractDescription, binding, endpointAddress), key =>
-        {
-            var serviceEndpoint = new ServiceEndpoint(key.ContractDescription, key.Binding, key.EndpointAddress);
-            return serviceEndpoint;
-        });
+        // Make sure that the ServiceEndpoint is the exact same instance for ClientBase caching to work properly, see https://github.com/dotnet/wcf/issues/5353
+        return _cache.GetOrAdd((_contractDescription, binding, endpointAddress), key => new ServiceEndpoint(key.ContractDescription, key.Binding, key.EndpointAddress));
     }
 
     public virtual Binding GetBinding()
