@@ -1,7 +1,3 @@
-using System.Collections.Concurrent;
-using System.ServiceModel;
-using System.ServiceModel.Description;
-
 namespace Wcf.HttpClientFactory;
 
 internal static class ContractDescriptionExtensions

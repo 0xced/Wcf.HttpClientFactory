@@ -1,10 +1,4 @@
-﻿using System.Reflection;
-using System.ServiceModel;
-using System.ServiceModel.Description;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
-namespace Wcf.HttpClientFactory;
+﻿namespace Wcf.HttpClientFactory;
 
 public static class ServiceCollectionExtensions
 {

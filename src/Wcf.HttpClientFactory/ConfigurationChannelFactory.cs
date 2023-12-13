@@ -1,6 +1,3 @@
-using System.ServiceModel;
-using System.ServiceModel.Description;
-
 namespace Wcf.HttpClientFactory;
 
 internal class ConfigurationChannelFactory<T> : ChannelFactory<T>
