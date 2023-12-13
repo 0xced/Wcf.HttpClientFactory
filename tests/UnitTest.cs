@@ -54,10 +54,11 @@ public class UnitTest : IDisposable
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
         services.AddContract<HelloEndpoint, HelloConfiguration>(contractLifetime, channelFactoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
 
         foreach (var name in new[] { "Jane", "Steve" })
         {
-            var service = serviceProvider.GetRequiredService<HelloEndpoint>();
+            var service = scope.ServiceProvider.GetRequiredService<HelloEndpoint>();
 
             var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
 
@@ -104,8 +105,8 @@ public class UnitTest : IDisposable
         services.AddLogging(c => c.AddXUnit(_outputHelper));
         services.AddContract<CalculatorSoap>(contractLifetime, channelFactoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
-
         await using var scope = serviceProvider.CreateAsyncScope();
+
         foreach (var number in new[] { 3, 14, 15 })
         {
             var service = scope.ServiceProvider.GetRequiredService<CalculatorSoap>();
