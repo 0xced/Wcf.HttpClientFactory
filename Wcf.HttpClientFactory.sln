@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.ServiceModel.HttpClientFactory", "src\System.ServiceModel.HttpClientFactory\System.ServiceModel.HttpClientFactory.csproj", "{8C518706-BBAD-4F5A-956B-47C4832A7C98}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.HttpClientFactory", "src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj", "{8C518706-BBAD-4F5A-956B-47C4832A7C98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.ServiceModel.HttpClientFactory.Tests", "tests\System.ServiceModel.HttpClientFactory.Tests.csproj", "{E2B58FB1-F9B7-4220-A826-493211B2F7C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.HttpClientFactory.Tests", "tests\Wcf.HttpClientFactory.Tests.csproj", "{E2B58FB1-F9B7-4220-A826-493211B2F7C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloService", "src\HelloService\HelloService.csproj", "{E9C60176-5456-42A9-ABDB-BC58CD21799D}"
 EndProject

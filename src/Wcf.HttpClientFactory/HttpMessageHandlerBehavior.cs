@@ -2,7 +2,7 @@
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 
-namespace System.ServiceModel.HttpClientFactory;
+namespace Wcf.HttpClientFactory;
 
 /// <summary>
 /// See [Singleton WCF Client doesn't respect DNS changes][1] and [Leverage HttpClientFactory to get benefits of handlers][2] and [Question: How to assign custom HttpClient to Binding?][3]

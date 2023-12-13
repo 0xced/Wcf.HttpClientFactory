@@ -1,4 +1,4 @@
-﻿namespace System.ServiceModel.HttpClientFactory;
+﻿namespace Wcf.HttpClientFactory;
 
 internal class ContractMappingRegistry
 {

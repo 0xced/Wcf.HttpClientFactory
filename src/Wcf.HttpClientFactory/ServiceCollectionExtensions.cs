@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
+using System.ServiceModel;
+using System.ServiceModel.Description;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace System.ServiceModel.HttpClientFactory;
+namespace Wcf.HttpClientFactory;
 
 public static class ServiceCollectionExtensions
 {
@@ -102,7 +104,7 @@ public static class ServiceCollectionExtensions
         return channelFactory;
     }
 
-    private static (TConfiguration configuration, Description.ServiceEndpoint endpoint) GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(IServiceProvider serviceProvider)
+    private static (TConfiguration configuration, ServiceEndpoint endpoint) GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(IServiceProvider serviceProvider)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {

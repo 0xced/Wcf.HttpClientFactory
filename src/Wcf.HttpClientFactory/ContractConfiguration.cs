@@ -1,9 +1,10 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 
-namespace System.ServiceModel.HttpClientFactory;
+namespace Wcf.HttpClientFactory;
 
 public class ContractConfiguration
 {

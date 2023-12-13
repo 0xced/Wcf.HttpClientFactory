@@ -23,7 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\src\CalculatorService\CalculatorService.csproj" />
     <ProjectReference Include="..\src\HelloService\HelloService.csproj" />
-    <ProjectReference Include="..\src\System.ServiceModel.HttpClientFactory\System.ServiceModel.HttpClientFactory.csproj" />
+    <ProjectReference Include="..\src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj" />
   </ItemGroup>
 
 </Project>

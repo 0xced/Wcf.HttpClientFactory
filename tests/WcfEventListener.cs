@@ -1,8 +1,9 @@
-﻿using System.Diagnostics.Tracing;
+﻿using System;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using Xunit.Abstractions;
 
-namespace System.ServiceModel.HttpClientFactory.Tests;
+namespace Wcf.HttpClientFactory.Tests;
 
 public class WcfEventListener : EventListener
 {

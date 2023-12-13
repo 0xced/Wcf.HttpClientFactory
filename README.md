@@ -1,4 +1,4 @@
-# System.ServiceModel.HttpClientFactory
+# Wcf.HttpClientFactory
 
 My attempt at using [IHttpClientFactory][1] with the WCF client libraries (`System.ServiceModel.*` NuGet packages)
 

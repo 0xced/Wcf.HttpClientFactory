@@ -1,3 +1,5 @@
+using System;
+using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -10,7 +12,7 @@ using ServiceReference;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace System.ServiceModel.HttpClientFactory.Tests;
+namespace Wcf.HttpClientFactory.Tests;
 
 public class UnitTest : IDisposable
 {
