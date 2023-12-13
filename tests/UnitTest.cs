@@ -1,8 +1,11 @@
+using System.ServiceModel.Description;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ServiceReference;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,7 +48,9 @@ public class UnitTest : IDisposable
         Skip.If(contractLifetime == ServiceLifetime.Transient && channelFactoryLifetime == ServiceLifetime.Transient, "Transient contract + channel factory is not supported");
 
         var services = new ServiceCollection();
-        services.AddContract<HelloEndpoint>(contractLifetime, channelFactoryLifetime);
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddEnvironmentVariables().Build());
+        services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
+        services.AddContract<HelloEndpoint, HelloConfiguration>(contractLifetime, channelFactoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
 
         foreach (var name in new[] { "Jane", "Steve" })
@@ -55,6 +60,35 @@ public class UnitTest : IDisposable
             var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
 
             response.HelloResponse.Message.Should().Be($"Hello {name}!");
+        }
+    }
+
+    private class HelloOptions
+    {
+        public string? Url { get; init; }
+        public string UserName { get; init; } = "AzureDiamond";
+        public string Password { get; init; } = "hunter2";
+    }
+
+    [HttpClient("Hello")]
+    private class HelloConfiguration : ContractConfiguration<HelloEndpoint>
+    {
+        private readonly IOptions<HelloOptions> _options;
+
+        public HelloConfiguration(IOptions<HelloOptions> options) => _options = options;
+
+        public override EndpointAddress GetEndpointAddress()
+        {
+            var url = _options.Value.Url;
+            return url == null ? base.GetEndpointAddress() : new EndpointAddress(url);
+        }
+
+        public override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
+        {
+            var options = _options.Value;
+            var credential = clientCredentials.UserName;
+            credential.UserName = options.UserName;
+            credential.Password = options.Password;
         }
     }
 

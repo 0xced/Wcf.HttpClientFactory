@@ -9,24 +9,24 @@ public class ContractConfiguration
 {
     private Binding? _binding;
     private EndpointAddress? _endpointAddress;
-    private ClientCredentials? _clientCredentials;
     private readonly ContractDescription _contractDescription;
-    private readonly ConcurrentDictionary<(ContractDescription ContractDescription, Binding Binding, EndpointAddress EndpointAddress, ClientCredentials ClientCredentials), ServiceEndpoint> _cache = new();
+    private readonly ConcurrentDictionary<(ContractDescription ContractDescription, Binding Binding, EndpointAddress EndpointAddress), ServiceEndpoint> _cache = new();
+
+    protected Type ClientType { get; }
 
     protected ContractConfiguration(ContractDescription contractDescription)
     {
         _contractDescription = contractDescription;
+        ClientType = _contractDescription.GetClientType();
     }
 
-    public virtual ServiceEndpoint GetServiceEndpoint()
+    internal ServiceEndpoint GetServiceEndpoint()
     {
         var binding = GetBinding();
         var endpointAddress = GetEndpointAddress();
-        var clientCredentials = GetClientCredentials(binding, endpointAddress);
-        return _cache.GetOrAdd((_contractDescription, binding, endpointAddress, clientCredentials), key =>
+        return _cache.GetOrAdd((_contractDescription, binding, endpointAddress), key =>
         {
             var serviceEndpoint = new ServiceEndpoint(key.ContractDescription, key.Binding, key.EndpointAddress);
-            serviceEndpoint.EndpointBehaviors.Add(key.ClientCredentials);
             return serviceEndpoint;
         });
     }
@@ -38,23 +38,21 @@ public class ContractConfiguration
             return _binding;
         }
 
-        var clientType = _contractDescription.GetClientType();
-
-        var getDefaultBinding = clientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getDefaultBinding = ClientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultBinding != null)
         {
-            _binding = (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{clientType.FullName}.{getDefaultBinding.Name} returned null"));
+            _binding = (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultBinding.Name} returned null"));
             return _binding;
         }
 
-        var getBindingForEndpoint = clientType.GetMethod("GetBindingForEndpoint", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getBindingForEndpoint = ClientType.GetMethod("GetBindingForEndpoint", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getBindingForEndpoint != null)
         {
-            _binding = (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{clientType.FullName}.{getBindingForEndpoint.Name} returned null"));
+            _binding = (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getBindingForEndpoint.Name} returned null"));
             return _binding;
         }
 
-        throw new MissingMethodException(MissingMethodMessage(clientType, "GetBindingForEndpoint"));
+        throw new MissingMethodException(MissingMethodMessage(ClientType, "GetBindingForEndpoint"));
     }
 
     public virtual EndpointAddress GetEndpointAddress()
@@ -64,29 +62,25 @@ public class ContractConfiguration
             return _endpointAddress;
         }
 
-        var clientType = _contractDescription.GetClientType();
-
-        var getDefaultEndpointAddress = clientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getDefaultEndpointAddress = ClientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultEndpointAddress != null)
         {
-            _endpointAddress = (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{clientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
+            _endpointAddress = (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
             return _endpointAddress;
         }
 
-        var getEndpointAddress = clientType.GetMethod("GetEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getEndpointAddress = ClientType.GetMethod("GetEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getEndpointAddress != null)
         {
-            _endpointAddress = (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{clientType.FullName}.{getEndpointAddress.Name} returned null"));
+            _endpointAddress = (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getEndpointAddress.Name} returned null"));
             return _endpointAddress;
         }
 
-        throw new MissingMethodException(MissingMethodMessage(clientType, "GetEndpointAddress"));
+        throw new MissingMethodException(MissingMethodMessage(ClientType, "GetEndpointAddress"));
     }
 
-    public virtual ClientCredentials GetClientCredentials(Binding binding, EndpointAddress address)
+    public virtual void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
     {
-        _clientCredentials ??= new ClientCredentials();
-        return _clientCredentials;
     }
 
     private static string MissingMethodMessage(Type clientType, string missingMethodName)
@@ -113,22 +107,21 @@ public class ContractConfiguration<TContract> : ContractConfiguration
 
     public virtual ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
     {
-        return new ChannelFactory<TContract>(serviceEndpoint);
+        return new ConfigurationChannelFactory<TContract>(this, serviceEndpoint);
     }
 
     public virtual ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
     {
-        var clientType = ContractDescription.GetClientType();
-        var constructor = clientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(ServiceEndpoint) }, null);
+        var constructor = ClientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(ServiceEndpoint) });
         if (constructor == null)
         {
-            var namespaceLines = clientType.Namespace == null ? "" : $"{Environment.NewLine}namespace {clientType.Namespace};{Environment.NewLine}";
+            var namespaceLines = ClientType.Namespace == null ? "" : $"{Environment.NewLine}namespace {ClientType.Namespace};{Environment.NewLine}";
             var message = $$"""
-                            The {{clientType.Name}} class is missing a constructor taking a ServiceEndpoint parameter. Please add the following code in your project:
+                            The {{ClientType.Name}} class is missing a constructor taking a ServiceEndpoint parameter. Please add the following code in your project:
                             {{namespaceLines}}
-                            {{(clientType.IsPublic ? "public" : "internal")}} partial class {{clientType.Name}}
+                            {{(ClientType.IsPublic ? "public" : "internal")}} partial class {{ClientType.Name}}
                             {
-                                public {{clientType.Name}}(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
+                                public {{ClientType.Name}}(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
                                 {
                                 }
                             }
@@ -137,6 +130,25 @@ public class ContractConfiguration<TContract> : ContractConfiguration
             throw new MissingMemberException(message);
         }
         var client = (ClientBase<TContract>)constructor.Invoke(new object[] { serviceEndpoint });
+        if (IsModifiable(client.ClientCredentials))
+        {
+            ConfigureEndpoint(client.Endpoint, client.ClientCredentials);
+        }
         return client;
+    }
+
+    private static bool IsModifiable(ClientCredentials clientCredentials)
+    {
+        // ClientCredentials._isReadOnly is a private field so we have to catch the InvalidOperationException ¯\_(ツ)_/¯
+        var copy = clientCredentials.Clone();
+        try
+        {
+            copy.UserName.UserName = "";
+            return true;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
     }
 }
