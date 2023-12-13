@@ -9,6 +9,8 @@ public class ContractConfiguration
 
     protected Type ClientType { get; }
 
+    private protected static readonly FieldInfo? IsReadOnlyField = typeof(ClientCredentials).GetField("_isReadOnly", BindingFlags.Instance | BindingFlags.NonPublic);
+
     protected ContractConfiguration(ContractDescription contractDescription)
     {
         _contractDescription = contractDescription;
@@ -125,16 +127,21 @@ public class ContractConfiguration<TContract> : ContractConfiguration
             throw new MissingMemberException(message);
         }
         var client = (ClientBase<TContract>)constructor.Invoke(new object[] { serviceEndpoint });
-        if (IsModifiable(client.ClientCredentials))
+        if (IsMutable(client.ClientCredentials))
         {
             ConfigureEndpoint(client.Endpoint, client.ClientCredentials);
         }
         return client;
     }
 
-    private static bool IsModifiable(ClientCredentials clientCredentials)
+    private static bool IsMutable(ClientCredentials clientCredentials)
     {
-        // ClientCredentials._isReadOnly is a private field so we have to catch the InvalidOperationException ¯\_(ツ)_/¯
+        // Try not to catch an InvalidOperationException by reading the private ClientCredentials._isReadOnly field first
+        if (IsReadOnlyField != null && IsReadOnlyField.GetValue(clientCredentials) is bool isReadOnly)
+        {
+            return !isReadOnly;
+        }
+
         var copy = clientCredentials.Clone();
         try
         {
