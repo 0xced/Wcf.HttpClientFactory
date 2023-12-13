@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
-        var httpClientName = ContractConfiguration.GetHttpClientName<TContract, TConfiguration>();
+        var httpClientName = ContractConfiguration<TContract>.GetHttpClientName<TConfiguration>();
         if (httpClientName == null) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be null.", nameof(TContract));
         if (httpClientName.Length == 0) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be an empty sting.", nameof(TContract));
 

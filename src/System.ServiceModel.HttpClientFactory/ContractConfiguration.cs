@@ -18,12 +18,6 @@ public class ContractConfiguration
         _contractDescription = contractDescription;
     }
 
-    internal static string GetHttpClientName<TContract, TConfiguration>()
-    {
-        var httpClientName = typeof(TConfiguration).GetCustomAttribute<HttpClientAttribute>()?.Name;
-        return httpClientName ?? ContractDescription.GetContract(typeof(TContract)).Name;
-    }
-
     public virtual ServiceEndpoint GetServiceEndpoint()
     {
         var binding = GetBinding();
@@ -109,6 +103,12 @@ public class ContractConfiguration<TContract> : ContractConfiguration
 
     public ContractConfiguration() : base(ContractDescription)
     {
+    }
+
+    internal static string GetHttpClientName<TConfiguration>()
+    {
+        var httpClientName = typeof(TConfiguration).GetCustomAttribute<HttpClientAttribute>()?.Name;
+        return httpClientName ?? ContractDescription.Name;
     }
 
     public virtual ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
