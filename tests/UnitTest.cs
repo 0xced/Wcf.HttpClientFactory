@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -93,6 +95,48 @@ public class UnitTest : IDisposable
             credential.UserName = options.UserName;
             credential.Password = options.Password;
         }
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task TestDisposeFaulted(bool asyncScope)
+    {
+        var services = new ServiceCollection();
+        services.AddContract<HelloEndpoint, HelloFaultingConfiguration>();
+        await using var serviceProvider = services.BuildServiceProvider();
+        var scope = asyncScope ? serviceProvider.CreateAsyncScope() : serviceProvider.CreateScope();
+
+        var service = scope.ServiceProvider.GetRequiredService<HelloEndpoint>();
+
+        try
+        {
+            await service.SayHelloAsync(new SayHello(new helloRequest()));
+        }
+        catch (InvalidOperationException exception) when (exception.Message.Contains("CustomBinding"))
+        {
+        }
+        finally
+        {
+            var state = (service as ICommunicationObject)?.State;
+            state.Should().Be(CommunicationState.Faulted);
+
+            if (asyncScope)
+            {
+                // DisposeAsync works fine, even when in a faulted state thanks to https://github.com/dotnet/wcf/pull/4865
+                await ((IAsyncDisposable)scope).DisposeAsync();
+            }
+            else
+            {
+                // Dispose throws ¯\_(ツ)_/¯
+                var dispose = () => scope.Dispose();
+                dispose.Should().ThrowExactly<CommunicationObjectFaultedException>();
+            }
+        }
+    }
+
+    private class HelloFaultingConfiguration : ContractConfiguration<HelloEndpoint>
+    {
+        public override Binding GetBinding() => new CustomBinding(base.GetBinding().CreateBindingElements().Append(new ReliableSessionBindingElement()));
     }
 
     [SkippableTheory]
