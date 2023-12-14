@@ -45,26 +45,28 @@ public class UnitTest : IDisposable
         _assertionScope.Dispose();
     }
 
-    [SkippableTheory]
+    [Theory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
+    public async Task TestSayHello(ServiceLifetime contractLifetime, bool registerChannelFactory)
     {
-        Skip.If(contractLifetime == ServiceLifetime.Transient && channelFactoryLifetime == ServiceLifetime.Transient, "Transient contract + channel factory is not supported");
-
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddEnvironmentVariables().Build());
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
-        services.AddContract<HelloEndpoint, HelloConfiguration>(contractLifetime, channelFactoryLifetime);
+        services.AddContract<HelloEndpoint, HelloConfiguration>(contractLifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
-        await using var scope = serviceProvider.CreateAsyncScope();
 
-        foreach (var name in new[] { "Jane", "Steve" })
+        for (var i = 1; i <= 2; i++)
         {
-            var service = scope.ServiceProvider.GetRequiredService<HelloEndpoint>();
+            await using var scope = serviceProvider.CreateAsyncScope();
 
-            var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
+            foreach (var name in new[] { $"Jane {i}", $"Steve {i}" })
+            {
+                var service = scope.ServiceProvider.GetRequiredService<HelloEndpoint>();
 
-            response.HelloResponse.Message.Should().Be($"Hello {name}!");
+                var response = await service.SayHelloAsync(new SayHello(new helloRequest { Name = name }));
+
+                response.HelloResponse.Message.Should().Be($"Hello {name}!");
+            }
         }
     }
 
@@ -82,13 +84,13 @@ public class UnitTest : IDisposable
 
         public HelloConfiguration(IOptions<HelloOptions> options) => _options = options;
 
-        public override EndpointAddress GetEndpointAddress()
+        protected override EndpointAddress GetEndpointAddress()
         {
             var url = _options.Value.Url;
             return url == null ? base.GetEndpointAddress() : new EndpointAddress(url);
         }
 
-        public override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
+        protected override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
         {
             var options = _options.Value;
             var credential = clientCredentials.UserName;
@@ -136,18 +138,16 @@ public class UnitTest : IDisposable
 
     private class HelloFaultingConfiguration : ContractConfiguration<HelloEndpoint>
     {
-        public override Binding GetBinding() => new CustomBinding(base.GetBinding().CreateBindingElements().Append(new ReliableSessionBindingElement()));
+        protected override Binding GetBinding() => new CustomBinding(base.GetBinding().CreateBindingElements().Append(new ReliableSessionBindingElement()));
     }
 
-    [SkippableTheory]
+    [Theory]
     [CombinatorialData]
-    public async Task TestCalculator(ServiceLifetime contractLifetime, ServiceLifetime? channelFactoryLifetime)
+    public async Task TestCalculator(ServiceLifetime contractLifetime, bool registerChannelFactory)
     {
-        Skip.If(contractLifetime == ServiceLifetime.Transient && channelFactoryLifetime == ServiceLifetime.Transient, "Transient contract + channel factory is not supported");
-
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
-        services.AddContract<CalculatorSoap>(contractLifetime, channelFactoryLifetime);
+        services.AddContract<CalculatorSoap>(contractLifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 

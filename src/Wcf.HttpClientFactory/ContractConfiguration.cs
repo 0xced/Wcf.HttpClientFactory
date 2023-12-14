@@ -23,7 +23,7 @@ public class ContractConfiguration
         return _cache.GetOrAdd((_contractDescription, binding, endpointAddress), key => new ServiceEndpoint(key.ContractDescription, key.Binding, key.EndpointAddress));
     }
 
-    public virtual Binding GetBinding()
+    protected virtual Binding GetBinding()
     {
         if (_binding != null)
         {
@@ -47,7 +47,7 @@ public class ContractConfiguration
         throw new MissingMethodException(MissingMethodMessage(ClientType, "GetBindingForEndpoint"));
     }
 
-    public virtual EndpointAddress GetEndpointAddress()
+    protected virtual EndpointAddress GetEndpointAddress()
     {
         if (_endpointAddress != null)
         {
@@ -71,7 +71,7 @@ public class ContractConfiguration
         throw new MissingMethodException(MissingMethodMessage(ClientType, "GetEndpointAddress"));
     }
 
-    public virtual void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
+    protected internal virtual void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
     {
     }
 
@@ -97,12 +97,12 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         return httpClientName ?? ContractDescription.Name;
     }
 
-    public virtual ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
+    internal ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
     {
         return new ConfigurationChannelFactory<TContract>(this, serviceEndpoint);
     }
 
-    public virtual ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
+    internal ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
     {
         var constructor = ClientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(ServiceEndpoint) });
         if (constructor == null)
