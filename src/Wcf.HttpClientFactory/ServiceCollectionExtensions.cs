@@ -6,16 +6,16 @@ public static class ServiceCollectionExtensions
 
     public static IHttpClientBuilder AddContract<TContract>(
         this IServiceCollection services,
-        ServiceLifetime contractLifetime = ServiceLifetime.Transient,
+        ServiceLifetime lifetime = ServiceLifetime.Transient,
         bool registerChannelFactory = false)
         where TContract : class
     {
-        return AddContract<TContract, ContractConfiguration<TContract>>(services, contractLifetime, registerChannelFactory);
+        return AddContract<TContract, ContractConfiguration<TContract>>(services, lifetime, registerChannelFactory);
     }
 
     [SuppressMessage("ReSharper", "RedundantTypeArgumentsOfMethod", Justification = "It's good to see exactly what type are registered at a glance")]
     public static IHttpClientBuilder AddContract<TContract, TConfiguration>(this IServiceCollection services,
-        ServiceLifetime contractLifetime = ServiceLifetime.Transient,
+        ServiceLifetime lifetime = ServiceLifetime.Transient,
         bool registerChannelFactory = false)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
         if (httpClientName == null) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be null.", nameof(TContract));
         if (httpClientName.Length == 0) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be an empty sting.", nameof(TContract));
 
-        EnsureValidCacheSetting<TContract>(contractLifetime, registerChannelFactory);
+        EnsureValidCacheSetting<TContract>(lifetime, registerChannelFactory);
 
         var contractType = typeof(TContract);
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);
@@ -42,20 +42,20 @@ public static class ServiceCollectionExtensions
         if (registerChannelFactory)
         {
             services.AddSingleton<ChannelFactory<TContract>>(CreateChannelFactory<TContract, TConfiguration>);
-            services.Add<TContract>(sp => sp.GetRequiredService<ChannelFactory<TContract>>().CreateChannel(), contractLifetime);
+            services.Add<TContract>(sp => sp.GetRequiredService<ChannelFactory<TContract>>().CreateChannel(), lifetime);
         }
         else
         {
-            services.Add<TContract>(CreateClient<TContract, TConfiguration>, contractLifetime);
+            services.Add<TContract>(CreateClient<TContract, TConfiguration>, lifetime);
         }
 
         return services.AddHttpClient(httpClientName);
     }
 
-    private static void EnsureValidCacheSetting<TContract>(ServiceLifetime contractLifetime, bool registerChannelFactory)
+    private static void EnsureValidCacheSetting<TContract>(ServiceLifetime lifetime, bool registerChannelFactory)
         where TContract : class
     {
-        if (contractLifetime == ServiceLifetime.Singleton || registerChannelFactory)
+        if (lifetime == ServiceLifetime.Singleton || registerChannelFactory)
             return;
 
         var clientType = ContractConfiguration<TContract>.ContractDescription.GetClientType();
@@ -67,8 +67,8 @@ public static class ServiceCollectionExtensions
             return;
 
         var message = $"""
-                      When the "{nameof(registerChannelFactory)}" argument is false, the "{contractLifetime}" contract lifetime can only be used if "{clientType.Name}" cache setting is always on.
-                      Either change the "{nameof(contractLifetime)}" to "{nameof(ServiceLifetime.Singleton)}" or, preferably, set the cache setting to always on the client with the following code:
+                      When the "{nameof(registerChannelFactory)}" argument is false, the "{lifetime}" lifetime can only be used if "{clientType.Name}" cache setting is always on.
+                      Either change the "{nameof(lifetime)}" to "{nameof(ServiceLifetime.Singleton)}" or, preferably, set the cache setting to always on the client with the following code:
 
                       {clientType.Name}.{cacheSettingName} = {nameof(CacheSetting)}.{nameof(CacheSetting.AlwaysOn)};
 
@@ -100,13 +100,7 @@ public static class ServiceCollectionExtensions
     {
         var configuration = serviceProvider.GetRequiredService<TConfiguration>();
         var httpMessageHandlerBehavior = serviceProvider.GetRequiredService<HttpMessageHandlerBehavior>();
-
-        var endpoint = configuration.GetServiceEndpoint();
-        if (!endpoint.EndpointBehaviors.Contains(typeof(HttpMessageHandlerBehavior)))
-        { 
-            endpoint.EndpointBehaviors.Add(httpMessageHandlerBehavior); 
-        }
-
+        var endpoint = configuration.GetServiceEndpoint(httpMessageHandlerBehavior);
         return (configuration, endpoint);
     }
 

@@ -47,13 +47,13 @@ public sealed class UnitTest : IDisposable
 
     [Theory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime contractLifetime, bool registerChannelFactory)
+    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory)
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddEnvironmentVariables().Build());
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
-        services.AddContract<HelloEndpoint, HelloConfiguration>(contractLifetime, registerChannelFactory);
+        services.AddContract<HelloEndpoint, HelloConfiguration>(lifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
 
         for (var i = 1; i <= 2; i++)
@@ -84,13 +84,12 @@ public sealed class UnitTest : IDisposable
     private class HelloConfiguration : ContractConfiguration<HelloEndpoint>
     {
         private readonly IOptions<HelloOptions> _options;
-        private Binding? _binding;
 
         public HelloConfiguration(IOptions<HelloOptions> options) => _options = options;
 
         protected override Binding GetBinding()
         {
-            return _binding ??= new BasicHttpBinding { AllowCookies = true, Security = { Mode = BasicHttpSecurityMode.Transport } };
+            return new BasicHttpBinding { AllowCookies = true, Security = { Mode = BasicHttpSecurityMode.Transport } };
         }
 
         protected override EndpointAddress GetEndpointAddress()
@@ -111,11 +110,11 @@ public sealed class UnitTest : IDisposable
 
     [Theory]
     [CombinatorialData]
-    public async Task TestCalculator(ServiceLifetime contractLifetime, bool registerChannelFactory)
+    public async Task TestCalculator(ServiceLifetime lifetime, bool registerChannelFactory)
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
-        services.AddContract<CalculatorSoap>(contractLifetime, registerChannelFactory);
+        services.AddContract<CalculatorSoap>(lifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 

@@ -2,10 +2,8 @@ namespace Wcf.HttpClientFactory;
 
 public class ContractConfiguration
 {
-    private Binding? _binding;
-    private EndpointAddress? _endpointAddress;
     private readonly ContractDescription _contractDescription;
-    private readonly ConcurrentDictionary<(ContractDescription ContractDescription, Binding Binding, EndpointAddress EndpointAddress), ServiceEndpoint> _cache = new();
+    private ServiceEndpoint? _serviceEndpoint;
 
     protected Type ClientType { get; }
 
@@ -15,58 +13,41 @@ public class ContractConfiguration
         ClientType = _contractDescription.GetClientType();
     }
 
-    internal ServiceEndpoint GetServiceEndpoint()
+    internal ServiceEndpoint GetServiceEndpoint(HttpMessageHandlerBehavior httpMessageHandlerBehavior)
     {
-        var binding = GetBinding();
-        var endpointAddress = GetEndpointAddress();
         // Make sure that the ServiceEndpoint is the exact same instance for ClientBase caching to work properly, see https://github.com/dotnet/wcf/issues/5353
-        return _cache.GetOrAdd((_contractDescription, binding, endpointAddress), key => new ServiceEndpoint(key.ContractDescription, key.Binding, key.EndpointAddress));
+        if (_serviceEndpoint == null)
+        {
+            var binding = GetBinding();
+            var endpointAddress = GetEndpointAddress();
+            _serviceEndpoint = new ServiceEndpoint(_contractDescription, binding, endpointAddress);
+            _serviceEndpoint.EndpointBehaviors.Add(httpMessageHandlerBehavior);
+        }
+        return _serviceEndpoint;
     }
 
     protected virtual Binding GetBinding()
     {
-        if (_binding != null)
-        {
-            return _binding;
-        }
-
         var getDefaultBinding = ClientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultBinding != null)
-        {
-            _binding = (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultBinding.Name} returned null"));
-            return _binding;
-        }
+            return (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultBinding.Name} returned null"));
 
         var getBindingForEndpoint = ClientType.GetMethod("GetBindingForEndpoint", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getBindingForEndpoint != null)
-        {
-            _binding = (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getBindingForEndpoint.Name} returned null"));
-            return _binding;
-        }
+            return (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getBindingForEndpoint.Name} returned null"));
 
         throw new MissingMethodException(MissingMethodMessage(ClientType, "GetBindingForEndpoint"));
     }
 
     protected virtual EndpointAddress GetEndpointAddress()
     {
-        if (_endpointAddress != null)
-        {
-            return _endpointAddress;
-        }
-
         var getDefaultEndpointAddress = ClientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultEndpointAddress != null)
-        {
-            _endpointAddress = (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
-            return _endpointAddress;
-        }
+            return (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
 
         var getEndpointAddress = ClientType.GetMethod("GetEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getEndpointAddress != null)
-        {
-            _endpointAddress = (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getEndpointAddress.Name} returned null"));
-            return _endpointAddress;
-        }
+            return (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getEndpointAddress.Name} returned null"));
 
         throw new MissingMethodException(MissingMethodMessage(ClientType, "GetEndpointAddress"));
     }
