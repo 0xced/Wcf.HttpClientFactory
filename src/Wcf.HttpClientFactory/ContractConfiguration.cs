@@ -87,6 +87,7 @@ public class ContractConfiguration<TContract> : ContractConfiguration
 {
     internal static ContractDescription ContractDescription { get; } = ContractDescription.GetContract(typeof(TContract));
 
+    [SuppressMessage("ReSharper", "MemberCanBeProtected.Global", Justification = "It needs to be public in order to be instantiated by the dependency injection container")]
     public ContractConfiguration() : base(ContractDescription)
     {
     }

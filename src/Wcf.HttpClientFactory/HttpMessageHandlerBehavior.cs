@@ -28,7 +28,7 @@ internal class HttpMessageHandlerBehavior : IEndpointBehavior
         }));
     }
 
-    private static void SetPrimaryHttpClientHandler(HttpMessageHandler messageHandler, HttpClientHandler primaryHandler)
+    private static void SetPrimaryHttpClientHandler(HttpMessageHandler messageHandler, HttpMessageHandler primaryHandler)
     {
         var delegatingHandler = messageHandler as DelegatingHandler;
         do

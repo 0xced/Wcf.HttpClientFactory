@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Using Include="System.Collections.Concurrent" />
+    <Using Include="System.Diagnostics.CodeAnalysis" />
     <Using Include="System.Reflection" />
     <Using Include="System.ServiceModel" />
     <Using Include="System.ServiceModel.Channels" />

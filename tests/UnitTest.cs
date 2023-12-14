@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -14,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Wcf.HttpClientFactory.Tests;
 
-public class UnitTest : IDisposable
+public sealed class UnitTest : IDisposable
 {
     private readonly ITestOutputHelper _outputHelper;
     private readonly AssertionScope _assertionScope = new();
@@ -69,6 +71,7 @@ public class UnitTest : IDisposable
         }
     }
 
+    [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Local", Justification = "It can't be get-only for configuration binding")]
     private class HelloOptions
     {
         public string? Url { get; init; } = null;
@@ -76,12 +79,19 @@ public class UnitTest : IDisposable
         public string Password { get; init; } = "hunter2";
     }
 
+    [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local", Justification = "It's instantiated through the dependency injection container")]
     [HttpClient("Hello")]
     private class HelloConfiguration : ContractConfiguration<HelloEndpoint>
     {
         private readonly IOptions<HelloOptions> _options;
+        private Binding? _binding;
 
         public HelloConfiguration(IOptions<HelloOptions> options) => _options = options;
+
+        protected override Binding GetBinding()
+        {
+            return _binding ??= new BasicHttpBinding { AllowCookies = true, Security = { Mode = BasicHttpSecurityMode.Transport } };
+        }
 
         protected override EndpointAddress GetEndpointAddress()
         {
@@ -91,6 +101,7 @@ public class UnitTest : IDisposable
 
         protected override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
         {
+            _ = endpoint;
             var options = _options.Value;
             var credential = clientCredentials.UserName;
             credential.UserName = options.UserName;

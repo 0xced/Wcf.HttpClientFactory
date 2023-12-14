@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Security;
@@ -96,14 +97,16 @@ public class B2BServiceTest
         }
     }
 
+    [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Local", Justification = "It can't be get-only for configuration binding")]
     private class B2BServiceOptions
     {
-        public string? Url { get; init; }
+        public string? Url { get; init; } = null;
         public string User { get; init; } = "";
         public string Password { get; init; } = "";
         public string BillerId { get; init; } = "";
     }
 
+    [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local", Justification = "It's instantiated through the dependency injection container")]
     private class B2BServiceConfiguration : ContractConfiguration<B2BService>
     {
         private readonly IOptions<B2BServiceOptions> _options;
