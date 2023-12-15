@@ -2,7 +2,7 @@
 
 public static class ServiceCollectionExtensions
 {
-    private static readonly ContractMappingRegistry ContractRegistry = new();
+    private static readonly ContractMappingRegistry ContractRegistrations = new();
 
     public static IHttpClientBuilder AddContract<TContract>(
         this IServiceCollection services,
@@ -36,9 +36,9 @@ public static class ServiceCollectionExtensions
             throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
         }
 
-        ContractRegistry.Add<TContract>(clientName);
+        ContractRegistrations[ContractConfiguration<TContract>.ContractDescription] = clientName;
 
-        services.TryAddSingleton(ContractRegistry);
+        services.TryAddSingleton<ContractMappingRegistry>(ContractRegistrations);
         services.TryAddSingleton<TConfiguration>();
         services.TryAddSingleton<HttpMessageHandlerBehavior>();
 

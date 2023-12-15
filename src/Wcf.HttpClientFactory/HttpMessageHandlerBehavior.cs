@@ -21,7 +21,7 @@ internal class HttpMessageHandlerBehavior : IEndpointBehavior
     {
         bindingParameters.Add((Func<HttpClientHandler, HttpMessageHandler>)(clientHandler =>
         {
-            var httpClientName = _contractMappingRegistry.GetHttpClientName(endpoint.Contract.ContractType);
+            var httpClientName = _contractMappingRegistry[endpoint.Contract];
             var messageHandler = _httpMessageHandlerFactory.CreateHandler(httpClientName);
             SetPrimaryHttpClientHandler(messageHandler, clientHandler);
             return messageHandler;

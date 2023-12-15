@@ -1,10 +1,15 @@
 ﻿namespace Wcf.HttpClientFactory;
 
+/// <summary>
+/// Keeps the mapping between <see cref="ContractDescription"/> instances and their associated HTTP client name.
+/// </summary>
 internal class ContractMappingRegistry
 {
-    private readonly Dictionary<Type, string> _contractConfigurations = new();
+    private readonly Dictionary<ContractDescription, string> _httpClientNames = new();
 
-    public string GetHttpClientName(Type contractType) => _contractConfigurations[contractType];
-
-    public void Add<TContract>(string httpClientName) => _contractConfigurations[typeof(TContract)] = httpClientName;
+    public string this[ContractDescription contractDescription]
+    {
+        get => _httpClientNames[contractDescription];
+        set => _httpClientNames[contractDescription] = value;
+    }
 }
