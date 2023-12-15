@@ -8,17 +8,18 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         string? httpClientName = null,
         ServiceLifetime lifetime = ServiceLifetime.Transient,
-        bool registerChannelFactory = false)
+        bool registerChannelFactory = true)
         where TContract : class
     {
         return AddContract<TContract, ContractConfiguration<TContract>>(services, httpClientName, lifetime, registerChannelFactory);
     }
 
     [SuppressMessage("ReSharper", "RedundantTypeArgumentsOfMethod", Justification = "It's good to see exactly what type are registered at a glance")]
-    public static IHttpClientBuilder AddContract<TContract, TConfiguration>(this IServiceCollection services,
+    public static IHttpClientBuilder AddContract<TContract, TConfiguration>(
+        this IServiceCollection services,
         string? httpClientName = null,
         ServiceLifetime lifetime = ServiceLifetime.Transient,
-        bool registerChannelFactory = false)
+        bool registerChannelFactory = true)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
