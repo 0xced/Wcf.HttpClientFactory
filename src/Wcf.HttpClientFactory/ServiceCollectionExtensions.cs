@@ -6,23 +6,25 @@ public static class ServiceCollectionExtensions
 
     public static IHttpClientBuilder AddContract<TContract>(
         this IServiceCollection services,
+        string? httpClientName = null,
         ServiceLifetime lifetime = ServiceLifetime.Transient,
         bool registerChannelFactory = false)
         where TContract : class
     {
-        return AddContract<TContract, ContractConfiguration<TContract>>(services, lifetime, registerChannelFactory);
+        return AddContract<TContract, ContractConfiguration<TContract>>(services, httpClientName, lifetime, registerChannelFactory);
     }
 
     [SuppressMessage("ReSharper", "RedundantTypeArgumentsOfMethod", Justification = "It's good to see exactly what type are registered at a glance")]
     public static IHttpClientBuilder AddContract<TContract, TConfiguration>(this IServiceCollection services,
+        string? httpClientName = null,
         ServiceLifetime lifetime = ServiceLifetime.Transient,
         bool registerChannelFactory = false)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
-        var httpClientName = ContractConfiguration<TContract>.GetHttpClientName<TConfiguration>();
-        if (httpClientName == null) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be null.", nameof(TContract));
-        if (httpClientName.Length == 0) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be an empty sting.", nameof(TContract));
+        var clientName = httpClientName ?? ContractConfiguration<TContract>.ContractDescription.Name;
+        if (clientName == null) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be null.", nameof(TContract));
+        if (clientName.Length == 0) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be an empty sting.", nameof(TContract));
 
         EnsureValidCacheSetting<TContract>(lifetime, registerChannelFactory);
 
@@ -33,7 +35,7 @@ public static class ServiceCollectionExtensions
             throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
         }
 
-        ContractRegistry.Add<TContract>(httpClientName);
+        ContractRegistry.Add<TContract>(clientName);
 
         services.TryAddSingleton(ContractRegistry);
         services.TryAddSingleton<TConfiguration>();
@@ -49,7 +51,7 @@ public static class ServiceCollectionExtensions
             services.Add<TContract>(CreateClient<TContract, TConfiguration>, lifetime);
         }
 
-        return services.AddHttpClient(httpClientName);
+        return services.AddHttpClient(clientName);
     }
 
     private static void EnsureValidCacheSetting<TContract>(ServiceLifetime lifetime, bool registerChannelFactory)

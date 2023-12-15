@@ -53,7 +53,7 @@ public sealed class UnitTest : IDisposable
         services.AddLogging(c => c.AddXUnit(_outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddEnvironmentVariables().Build());
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
-        services.AddContract<HelloEndpoint, HelloConfiguration>(lifetime, registerChannelFactory);
+        services.AddContract<HelloEndpoint, HelloConfiguration>("Hello", lifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
 
         for (var i = 1; i <= 2; i++)
@@ -80,7 +80,6 @@ public sealed class UnitTest : IDisposable
     }
 
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local", Justification = "It's instantiated through the dependency injection container")]
-    [HttpClient("Hello")]
     private class HelloConfiguration : ContractConfiguration<HelloEndpoint>
     {
         private readonly IOptions<HelloOptions> _options;
@@ -114,7 +113,7 @@ public sealed class UnitTest : IDisposable
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
-        services.AddContract<CalculatorSoap>(lifetime, registerChannelFactory);
+        services.AddContract<CalculatorSoap>("Calculator", lifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 

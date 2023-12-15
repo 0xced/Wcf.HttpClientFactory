@@ -73,12 +73,6 @@ public class ContractConfiguration<TContract> : ContractConfiguration
     {
     }
 
-    internal static string GetHttpClientName<TConfiguration>()
-    {
-        var httpClientName = typeof(TConfiguration).GetCustomAttribute<HttpClientAttribute>()?.Name;
-        return httpClientName ?? ContractDescription.Name;
-    }
-
     internal ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
     {
         var channelFactory = new ChannelFactory<TContract>(serviceEndpoint);
