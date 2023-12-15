@@ -1,6 +1,6 @@
 namespace Wcf.HttpClientFactory;
 
-public class ContractConfiguration
+public abstract class ContractConfiguration
 {
     private readonly ContractDescription _contractDescription;
     private ServiceEndpoint? _serviceEndpoint;
