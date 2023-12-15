@@ -68,22 +68,13 @@ public class ContractConfiguration<TContract> : ContractConfiguration
 {
     internal static ContractDescription ContractDescription { get; } = ContractDescription.GetContract(typeof(TContract));
 
+    private readonly ConstructorInfo _clientConstructor;
+
     [SuppressMessage("ReSharper", "MemberCanBeProtected.Global", Justification = "It needs to be public in order to be instantiated by the dependency injection container")]
     public ContractConfiguration() : base(ContractDescription)
     {
-    }
-
-    internal ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
-    {
-        var channelFactory = new ChannelFactory<TContract>(serviceEndpoint);
-        ConfigureEndpoint(channelFactory.Endpoint, channelFactory.Credentials);
-        return channelFactory;
-    }
-
-    internal ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
-    {
-        var constructor = ClientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(ServiceEndpoint) });
-        if (constructor == null)
+        var clientConstructor = ClientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(ServiceEndpoint) });
+        if (clientConstructor == null)
         {
             var namespaceLines = ClientType.Namespace == null ? "" : $"{Environment.NewLine}namespace {ClientType.Namespace};{Environment.NewLine}";
             var message = $$"""
@@ -99,8 +90,20 @@ public class ContractConfiguration<TContract> : ContractConfiguration
                             """.ReplaceLineEndings();
             throw new MissingMemberException(message);
         }
-        var client = (ClientBase<TContract>)constructor.Invoke(new object[] { serviceEndpoint });
-        if (client.ClientCredentials.IsMutable())
+        _clientConstructor = clientConstructor;
+    }
+
+    internal ChannelFactory<TContract> CreateChannelFactory(ServiceEndpoint serviceEndpoint)
+    {
+        var channelFactory = new ChannelFactory<TContract>(serviceEndpoint);
+        ConfigureEndpoint(channelFactory.Endpoint, channelFactory.Credentials);
+        return channelFactory;
+    }
+
+    internal ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
+    {
+        var client = (ClientBase<TContract>)_clientConstructor.Invoke(new object[] { serviceEndpoint });
+        if (client.ChannelFactory.State == CommunicationState.Created)
         {
             ConfigureEndpoint(client.Endpoint, client.ClientCredentials);
         }
