@@ -66,7 +66,17 @@ public abstract class ContractConfiguration
 public class ContractConfiguration<TContract> : ContractConfiguration
     where TContract : class
 {
-    internal static ContractDescription ContractDescription { get; } = ContractDescription.GetContract(typeof(TContract));
+    [SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "One value per closed type is what is needed")]
+    private static ContractDescription? _contractDescription;
+
+    internal static ContractDescription ContractDescription
+    {
+        get
+        {
+            _contractDescription ??= ContractDescription.GetContract(typeof(TContract));
+            return _contractDescription;
+        }
+    }
 
     private readonly ConstructorInfo _clientConstructor;
 

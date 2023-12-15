@@ -45,6 +45,14 @@ public sealed class UnitTest : IDisposable
         _assertionScope.Dispose();
     }
 
+    [Fact]
+    public void TestInvalidContractType()
+    {
+        var services = new ServiceCollection();
+        var action = () => services.AddContract<TaskFactory>();
+        action.Should().ThrowExactly<InvalidOperationException>().WithMessage("*ServiceContract*");
+    }
+
     [Theory]
     [CombinatorialData]
     public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory)
