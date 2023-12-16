@@ -10,4 +10,6 @@ public partial class HelloEndpointClient
     public HelloEndpointClient(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
     {
     }
+
+    public static Uri DefaultUri => GetDefaultEndpointAddress().Uri;
 }

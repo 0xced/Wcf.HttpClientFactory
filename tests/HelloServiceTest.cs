@@ -18,18 +18,20 @@ using Xunit.Abstractions;
 
 namespace Wcf.HttpClientFactory.Tests;
 
-public sealed class HelloServiceTest : IDisposable
+public sealed class HelloServiceTest : IClassFixture<LearnWebservicesFixture>, IDisposable
 {
     static HelloServiceTest()
     {
         HelloEndpointClient.CacheSetting = CacheSetting.AlwaysOn;
     }
 
+    private readonly LearnWebservicesFixture _fixture;
     private readonly ITestOutputHelper _outputHelper;
     private readonly WcfEventListener _eventListener;
 
-    public HelloServiceTest(ITestOutputHelper outputHelper)
+    public HelloServiceTest(LearnWebservicesFixture fixture, ITestOutputHelper outputHelper)
     {
+        _fixture = fixture;
         _outputHelper = outputHelper;
         _eventListener = new WcfEventListener(outputHelper);
     }
@@ -39,12 +41,13 @@ public sealed class HelloServiceTest : IDisposable
         _eventListener.Dispose();
     }
 
-    [Theory]
+    [SkippableTheory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory,
-        [CombinatorialValues("https://apps.learnwebservices.com/services/hello", null)] string? url)
+    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory, bool useDefaultUrl)
     {
-        var configuration = new Dictionary<string, string?> { [$"HelloService:{nameof(HelloOptions.Url)}"] = url };
+        Skip.If(useDefaultUrl && !_fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
+
+        var configuration = new Dictionary<string, string?> { [$"HelloService:{nameof(HelloOptions.Url)}"] = useDefaultUrl ? null : _fixture.WebServiceUri.AbsoluteUri };
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
@@ -73,7 +76,7 @@ public sealed class HelloServiceTest : IDisposable
     [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Local", Justification = "It can't be get-only for configuration binding")]
     private class HelloOptions
     {
-        public string? Url { get; init; } = null;
+        public Uri? Url { get; init; } = null;
         public string UserName { get; init; } = "AzureDiamond";
         public string Password { get; init; } = "hunter2";
     }
@@ -87,7 +90,9 @@ public sealed class HelloServiceTest : IDisposable
 
         protected override Binding GetBinding()
         {
-            return new BasicHttpBinding { AllowCookies = true, Security = { Mode = BasicHttpSecurityMode.Transport } };
+            var url = _options.Value.Url;
+            var mode = url?.Scheme == "http" ? BasicHttpSecurityMode.None : BasicHttpSecurityMode.Transport;
+            return new BasicHttpBinding { AllowCookies = true, Security = { Mode = mode } };
         }
 
         protected override EndpointAddress GetEndpointAddress()
