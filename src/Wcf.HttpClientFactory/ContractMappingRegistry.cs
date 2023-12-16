@@ -5,7 +5,7 @@
 /// </summary>
 internal class ContractMappingRegistry
 {
-    private readonly Dictionary<ContractDescription, string> _httpClientNames = new();
+    private readonly ConcurrentDictionary<ContractDescription, string> _httpClientNames = new();
 
     public string this[ContractDescription contractDescription]
     {

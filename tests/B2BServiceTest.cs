@@ -70,8 +70,8 @@ public class B2BServiceTest
 
         var executePingAsync = () => service.ExecutePingAsync(BillerID: "", eBillAccountID: "", ErrorTest: false, ExceptionTest: false);
         (await executePingAsync.Should().ThrowExactlyAsync<MessageSecurityException>())
-            .And.GetBaseException().Should().BeOfType<FaultException>()
-            .Which.Message.Should().Be("Unknown Username or incorrect Password");
+            .WithInnerExceptionExactly<FaultException>()
+            .WithMessage("Unknown Username or incorrect Password");
 
         var state = (service as ICommunicationObject)?.State;
         state.Should().Be(CommunicationState.Faulted);

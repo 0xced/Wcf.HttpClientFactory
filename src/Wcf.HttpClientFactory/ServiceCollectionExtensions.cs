@@ -23,11 +23,13 @@ public static class ServiceCollectionExtensions
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
-        var clientName = httpClientName ?? ContractConfiguration<TContract>.ContractDescription.Name;
+        var contractDescription = ContractConfiguration<TContract>.ContractDescription;
+
+        var clientName = httpClientName ?? contractDescription.Name;
         if (clientName == null) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be null.", nameof(TContract));
         if (clientName.Length == 0) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be an empty sting.", nameof(TContract));
 
-        EnsureValidCacheSetting<TContract>(lifetime, registerChannelFactory);
+        EnsureValidCacheSetting(contractDescription, lifetime, registerChannelFactory);
 
         var contractType = typeof(TContract);
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);
@@ -36,7 +38,7 @@ public static class ServiceCollectionExtensions
             throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
         }
 
-        ContractRegistrations[ContractConfiguration<TContract>.ContractDescription] = clientName;
+        ContractRegistrations[contractDescription] = clientName;
 
         services.TryAddSingleton<ContractMappingRegistry>(ContractRegistrations);
         services.TryAddSingleton<TConfiguration>();
@@ -55,14 +57,13 @@ public static class ServiceCollectionExtensions
         return services.AddHttpClient(clientName);
     }
 
-    private static void EnsureValidCacheSetting<TContract>(ServiceLifetime lifetime, bool registerChannelFactory)
-        where TContract : class
+    private static void EnsureValidCacheSetting(ContractDescription contractDescription, ServiceLifetime lifetime, bool registerChannelFactory)
     {
         if (lifetime == ServiceLifetime.Singleton || registerChannelFactory)
             return;
 
-        var clientType = ContractConfiguration<TContract>.ContractDescription.GetClientType();
-        const string cacheSettingName = nameof(ClientBase<TContract>.CacheSetting);
+        var clientType = contractDescription.GetClientType();
+        const string cacheSettingName = nameof(ClientBase<object>.CacheSetting);
         var cacheSettingProperty = clientType.BaseType?.GetProperty(cacheSettingName, BindingFlags.Public | BindingFlags.Static)
                                    ?? throw new MissingMethodException(clientType.FullName, cacheSettingName);
         var cacheSetting = cacheSettingProperty.GetValue(null) as CacheSetting?;
