@@ -8,12 +8,10 @@
 /// </summary>
 internal class HttpMessageHandlerBehavior : IEndpointBehavior
 {
-    private readonly ContractMappingRegistry _contractMappingRegistry;
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
 
-    public HttpMessageHandlerBehavior(ContractMappingRegistry contractMappingRegistry, IHttpMessageHandlerFactory messageHandlerFactory)
+    public HttpMessageHandlerBehavior(IHttpMessageHandlerFactory messageHandlerFactory)
     {
-        _contractMappingRegistry = contractMappingRegistry ?? throw new ArgumentNullException(nameof(contractMappingRegistry));
         _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
     }
 
@@ -21,7 +19,7 @@ internal class HttpMessageHandlerBehavior : IEndpointBehavior
     {
         bindingParameters.Add((Func<HttpClientHandler, HttpMessageHandler>)(clientHandler =>
         {
-            var httpClientName = _contractMappingRegistry[endpoint.Contract];
+            var httpClientName = ((HttpServiceEndpoint)endpoint).HttpClientName;
             var messageHandler = _httpMessageHandlerFactory.CreateHandler(httpClientName);
             SetPrimaryHttpClientHandler(messageHandler, clientHandler);
             return messageHandler;

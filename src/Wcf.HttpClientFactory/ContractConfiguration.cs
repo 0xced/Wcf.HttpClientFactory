@@ -13,14 +13,14 @@ public abstract class ContractConfiguration
         ClientType = _contractDescription.GetClientType();
     }
 
-    internal ServiceEndpoint GetServiceEndpoint(HttpMessageHandlerBehavior httpMessageHandlerBehavior)
+    internal ServiceEndpoint GetServiceEndpoint(string httpClientName, HttpMessageHandlerBehavior httpMessageHandlerBehavior)
     {
         // Make sure that the ServiceEndpoint is the exact same instance for ClientBase caching to work properly, see https://github.com/dotnet/wcf/issues/5353
         if (_serviceEndpoint == null)
         {
             var binding = GetBinding();
             var endpointAddress = GetEndpointAddress();
-            _serviceEndpoint = new ServiceEndpoint(_contractDescription, binding, endpointAddress);
+            _serviceEndpoint = new HttpServiceEndpoint(httpClientName, _contractDescription, binding, endpointAddress);
             _serviceEndpoint.EndpointBehaviors.Add(httpMessageHandlerBehavior);
         }
         return _serviceEndpoint;

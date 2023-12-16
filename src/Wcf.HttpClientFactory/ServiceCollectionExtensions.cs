@@ -2,8 +2,6 @@
 
 public static class ServiceCollectionExtensions
 {
-    private static readonly ContractMappingRegistry ContractRegistrations = new();
-
     public static IHttpClientBuilder AddContract<TContract>(
         this IServiceCollection services,
         string? httpClientName = null,
@@ -14,7 +12,6 @@ public static class ServiceCollectionExtensions
         return AddContract<TContract, ContractConfiguration<TContract>>(services, httpClientName, lifetime, registerChannelFactory);
     }
 
-    [SuppressMessage("ReSharper", "RedundantTypeArgumentsOfMethod", Justification = "It's good to see exactly what type are registered at a glance")]
     public static IHttpClientBuilder AddContract<TContract, TConfiguration>(
         this IServiceCollection services,
         string? httpClientName = null,
@@ -38,20 +35,17 @@ public static class ServiceCollectionExtensions
             throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
         }
 
-        ContractRegistrations[contractDescription] = clientName;
-
-        services.TryAddSingleton<ContractMappingRegistry>(ContractRegistrations);
         services.TryAddSingleton<TConfiguration>();
         services.TryAddSingleton<HttpMessageHandlerBehavior>();
 
         if (registerChannelFactory)
         {
-            services.AddSingleton<ChannelFactory<TContract>>(CreateChannelFactory<TContract, TConfiguration>);
+            services.AddSingleton<ChannelFactory<TContract>>(sp => CreateChannelFactory<TContract, TConfiguration>(sp, clientName));
             services.Add<TContract>(sp => sp.GetRequiredService<ChannelFactory<TContract>>().CreateChannel(), lifetime);
         }
         else
         {
-            services.Add<TContract>(CreateClient<TContract, TConfiguration>, lifetime);
+            services.Add<TContract>(sp => CreateClient<TContract, TConfiguration>(sp, clientName), lifetime);
         }
 
         return services.AddHttpClient(clientName);
@@ -80,31 +74,31 @@ public static class ServiceCollectionExtensions
         throw new InvalidOperationException(message);
     }
 
-    private static TContract CreateClient<TContract, TConfiguration>(IServiceProvider serviceProvider)
+    private static TContract CreateClient<TContract, TConfiguration>(IServiceProvider serviceProvider, string httpClientName)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
-        var (configuration, endpoint) = GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(serviceProvider);
+        var (configuration, endpoint) = GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(serviceProvider, httpClientName);
         var client = configuration.CreateClient(endpoint);
         return client as TContract ?? throw new InvalidCastException($"Unable to cast object of type '{client.GetType().FullName}' to type '{typeof(TContract).FullName}'.");
     }
 
-    private static ChannelFactory<TContract> CreateChannelFactory<TContract, TConfiguration>(IServiceProvider serviceProvider)
+    private static ChannelFactory<TContract> CreateChannelFactory<TContract, TConfiguration>(IServiceProvider serviceProvider, string httpClientName)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
-        var (configuration, endpoint) = GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(serviceProvider);
+        var (configuration, endpoint) = GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(serviceProvider, httpClientName);
         var channelFactory = configuration.CreateChannelFactory(endpoint);
         return channelFactory;
     }
 
-    private static (TConfiguration configuration, ServiceEndpoint endpoint) GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(IServiceProvider serviceProvider)
+    private static (TConfiguration configuration, ServiceEndpoint endpoint) GetConfigurationAndServiceEndpoint<TContract, TConfiguration>(IServiceProvider serviceProvider, string httpClientName)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
         var configuration = serviceProvider.GetRequiredService<TConfiguration>();
         var httpMessageHandlerBehavior = serviceProvider.GetRequiredService<HttpMessageHandlerBehavior>();
-        var endpoint = configuration.GetServiceEndpoint(httpMessageHandlerBehavior);
+        var endpoint = configuration.GetServiceEndpoint(httpClientName, httpMessageHandlerBehavior);
         return (configuration, endpoint);
     }
 

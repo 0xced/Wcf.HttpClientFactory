@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -47,7 +49,8 @@ public sealed class HelloServiceTest : IDisposable
         services.AddLogging(c => c.AddXUnit(_outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
-        services.AddContract<HelloEndpoint, HelloConfiguration>("Hello", lifetime, registerChannelFactory);
+        var interceptor = new InterceptingHandler();
+        services.AddContract<HelloEndpoint, HelloConfiguration>("Hello", lifetime, registerChannelFactory).AddHttpMessageHandler(_ => interceptor);
         await using var serviceProvider = services.BuildServiceProvider();
 
         for (var i = 1; i <= 2; i++)
@@ -63,6 +66,8 @@ public sealed class HelloServiceTest : IDisposable
                 response.HelloResponse.Message.Should().Be($"Hello {name}!");
             }
         }
+
+        interceptor.Requests.Should().HaveCount(4);
     }
 
     [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Local", Justification = "It can't be get-only for configuration binding")]
@@ -98,6 +103,19 @@ public sealed class HelloServiceTest : IDisposable
             var credential = clientCredentials.UserName;
             credential.UserName = options.UserName;
             credential.Password = options.Password;
+        }
+    }
+
+    private class InterceptingHandler : DelegatingHandler
+    {
+        private readonly List<HttpRequestMessage> _requests = new();
+
+        public IEnumerable<HttpRequestMessage> Requests => _requests;
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            _requests.Add(request);
+            return base.SendAsync(request, cancellationToken);
         }
     }
 }
