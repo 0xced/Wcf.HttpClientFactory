@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
@@ -55,11 +56,13 @@ public sealed class UnitTest : IDisposable
 
     [Theory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory)
+    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory,
+        [CombinatorialValues("https://apps.learnwebservices.com/services/hello", null)] string? url)
     {
+        var configuration = new Dictionary<string, string?> { [$"HelloService:{nameof(HelloOptions.Url)}"] = url };
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
-        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddEnvironmentVariables().Build());
+        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
         services.AddContract<HelloEndpoint, HelloConfiguration>("Hello", lifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
