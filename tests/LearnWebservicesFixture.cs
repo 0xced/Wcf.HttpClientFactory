@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Docker.DotNet.Models;
@@ -13,6 +14,7 @@ using Xunit.Abstractions;
 
 namespace Wcf.HttpClientFactory.Tests;
 
+[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global", Justification = "It is instantiated by Xunit")]
 public class LearnWebservicesFixture : IAsyncLifetime
 {
     private readonly IMessageSink _messageSink;
@@ -66,7 +68,7 @@ public class LearnWebservicesFixture : IAsyncLifetime
             DockerResourceConfiguration = Init().DockerResourceConfiguration;
         }
 
-        public LearnWebservicesBuilder(ContainerConfiguration configuration, ILogger logger) : base(configuration)
+        private LearnWebservicesBuilder(ContainerConfiguration configuration, ILogger logger) : base(configuration)
         {
             _logger = logger;
             DockerResourceConfiguration = configuration;

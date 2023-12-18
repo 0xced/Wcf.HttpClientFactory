@@ -1,6 +1,11 @@
 namespace Wcf.HttpClientFactory;
 
-public class ContractConfiguration<TContract>
+public abstract class ContractConfiguration
+{
+    protected internal virtual bool ConfigureSocketsHttpHandler(SocketsHttpHandler socketsHttpHandler) => true;
+}
+
+public class ContractConfiguration<TContract> : ContractConfiguration
     where TContract : class
 {
     [SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "One value per closed type is what is needed as it's actually constructed from TContract")]
@@ -76,14 +81,14 @@ public class ContractConfiguration<TContract>
     }
 
     private ServiceEndpoint? _serviceEndpoint;
-    internal ServiceEndpoint GetServiceEndpoint(string httpClientName, HttpMessageHandlerBehavior httpMessageHandlerBehavior)
+    internal ServiceEndpoint GetServiceEndpoint<TConfiguration>(string httpClientName, HttpMessageHandlerBehavior httpMessageHandlerBehavior)
     {
         // Make sure that the ServiceEndpoint is the exact same instance for ClientBase caching to work properly, see https://github.com/dotnet/wcf/issues/5353
         if (_serviceEndpoint == null)
         {
             var binding = GetBinding();
             var endpointAddress = GetEndpointAddress();
-            _serviceEndpoint = new HttpServiceEndpoint(httpClientName, ContractDescription, binding, endpointAddress);
+            _serviceEndpoint = new HttpServiceEndpoint(typeof(TConfiguration), httpClientName, ContractDescription, binding, endpointAddress);
             _serviceEndpoint.EndpointBehaviors.Add(httpMessageHandlerBehavior);
         }
         return _serviceEndpoint;

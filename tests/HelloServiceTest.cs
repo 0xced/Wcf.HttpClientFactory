@@ -43,11 +43,15 @@ public sealed class HelloServiceTest : IClassFixture<LearnWebservicesFixture>, I
 
     [SkippableTheory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory, bool useDefaultUrl)
+    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory, bool useDefaultUrl, bool configureMessageHandler)
     {
         Skip.If(useDefaultUrl && !_fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
 
-        var configuration = new Dictionary<string, string?> { [$"HelloService:{nameof(HelloOptions.Url)}"] = useDefaultUrl ? null : _fixture.WebServiceUri.AbsoluteUri };
+        var configuration = new Dictionary<string, string?>
+        {
+            [$"HelloService:{nameof(HelloOptions.Url)}"] = useDefaultUrl ? null : _fixture.WebServiceUri.AbsoluteUri,
+            [$"HelloService:{nameof(HelloOptions.ConfigureMessageHandler)}"] = configureMessageHandler.ToString(),
+        };
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(_outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
@@ -70,12 +74,13 @@ public sealed class HelloServiceTest : IClassFixture<LearnWebservicesFixture>, I
             }
         }
 
-        interceptor.Requests.Should().HaveCount(4);
+        interceptor.Requests.Should().HaveCount(configureMessageHandler ? 4 : 0);
     }
 
     [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Local", Justification = "It can't be get-only for configuration binding")]
     private class HelloOptions
     {
+        public bool ConfigureMessageHandler { get; init; }
         public Uri? Url { get; init; } = null;
         public string UserName { get; init; } = "AzureDiamond";
         public string Password { get; init; } = "hunter2";
@@ -108,6 +113,12 @@ public sealed class HelloServiceTest : IClassFixture<LearnWebservicesFixture>, I
             var credential = clientCredentials.UserName;
             credential.UserName = options.UserName;
             credential.Password = options.Password;
+        }
+
+        protected override bool ConfigureSocketsHttpHandler(SocketsHttpHandler socketsHttpHandler)
+        {
+            socketsHttpHandler.PooledConnectionLifetime = TimeSpan.FromHours(2);
+            return _options.Value.ConfigureMessageHandler;
         }
     }
 

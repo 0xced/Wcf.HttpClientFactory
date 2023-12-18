@@ -98,7 +98,7 @@ public static class ServiceCollectionExtensions
     {
         var configuration = serviceProvider.GetRequiredService<TConfiguration>();
         var httpMessageHandlerBehavior = serviceProvider.GetRequiredService<HttpMessageHandlerBehavior>();
-        var endpoint = configuration.GetServiceEndpoint(httpClientName, httpMessageHandlerBehavior);
+        var endpoint = configuration.GetServiceEndpoint<TConfiguration>(httpClientName, httpMessageHandlerBehavior);
         return (configuration, endpoint);
     }
 
