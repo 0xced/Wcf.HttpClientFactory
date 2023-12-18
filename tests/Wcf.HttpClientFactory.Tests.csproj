@@ -7,12 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" PrivateAssets="all" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="ReportGenerator" Version="5.2.0" PrivateAssets="all" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="6.2.0" />
     <PackageReference Include="Testcontainers" Version="3.6.0" />
     <PackageReference Include="xunit" Version="2.6.3" />
@@ -27,5 +29,57 @@
     <ProjectReference Include="..\src\HelloService\HelloService.csproj" />
     <ProjectReference Include="..\src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <VSTestLogger Include="GitHubActions" Visible="false" Condition="$(ContinuousIntegrationBuild) == 'true'" />
+    <VSTestLogger Include="trx%3BLogFileName=TestResults-$(TargetFramework).trx" Visible="false" Condition="$(ContinuousIntegrationBuild) == 'true'" />
+    <VSTestLogger Include="html%3BLogFileName=TestResults-$(TargetFramework).html" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup Label="Coverage">
+    <RootDirectory>$([System.IO.Directory]::GetParent($(MSBuildProjectDirectory)))</RootDirectory>
+    <CoverageReportDirectory>$([System.IO.Path]::Combine($(RootDirectory),'coverage',$(TargetFramework)))</CoverageReportDirectory>
+    <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) == 'true'">$(RootDirectory)</VSTestResultsDirectory>
+    <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) != 'true'">$([System.IO.Path]::Combine($(CoverageReportDirectory),'results'))</VSTestResultsDirectory>
+    <VSTestCollect>XPlat Code Coverage</VSTestCollect>
+    <VSTestLogger>@(VSTestLogger)</VSTestLogger>
+  </PropertyGroup>
+
+  <Target Name="GenerateHtmlCoverageReport" AfterTargets="VSTest" Condition="$(TargetFramework) != ''">
+    <ItemGroup>
+      <CoverletReport Include="$(VSTestResultsDirectory)/*/coverage.cobertura.xml" />
+    </ItemGroup>
+    <ReportGenerator ReportFiles="@(CoverletReport)" TargetDirectory="$(CoverageReportDirectory)" ReportTypes="Html;TextSummary" />
+  </Target>
+
+  <!-- Because of https://github.com/microsoft/vstest/issues/2378 -->
+  <Target Name="MoveCoverletReport" AfterTargets="GenerateHtmlCoverageReport" Condition="$(TargetFramework) != ''">
+    <Move SourceFiles="@(CoverletReport)" DestinationFolder="$(CoverageReportDirectory)" />
+    <PropertyGroup>
+      <CoverletReport>@(CoverletReport)</CoverletReport>
+    </PropertyGroup>
+    <ItemGroup>
+      <CoverletReportParentDirectory Include="$([System.IO.Path]::Combine($(CoverletReport),'..'))" Condition="$(CoverletReport) != ''" />
+    </ItemGroup>
+    <RemoveDir Directories="@(CoverletReportParentDirectory)" />
+  </Target>
+
+  <Target Name="DisplayCoverageSummary" AfterTargets="MoveCoverletReport" Condition="$(TargetFramework) != ''">
+    <PropertyGroup>
+      <CatCommand Condition="!$([MSBuild]::IsOSPlatform('Windows'))">cat</CatCommand>
+      <CatCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">type</CatCommand>
+    </PropertyGroup>
+    <Exec WorkingDirectory="$(CoverageReportDirectory)" Command="$(CatCommand) Summary.txt" />
+  </Target>
+
+  <Target Name="OpenHtmlCoverageReport" AfterTargets="MoveCoverletReport" Condition="$(TargetFramework) != '' AND $(ContinuousIntegrationBuild) != 'true'">
+    <PropertyGroup>
+      <OpenCommand Condition="$([MSBuild]::IsOSPlatform('Linux'))">xdg-open</OpenCommand>
+      <OpenCommand Condition="$([MSBuild]::IsOSPlatform('OSX'))">open</OpenCommand>
+      <OpenCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">explorer</OpenCommand>
+    </PropertyGroup>
+    <!-- executing "explorer path\to\index.html" returns exit code 1, so we ignore it -->
+    <Exec WorkingDirectory="$(CoverageReportDirectory)" Command="$(OpenCommand) index.html" Condition="$(OpenCommand) != ''" IgnoreExitCode="true" />
+  </Target>
 
 </Project>

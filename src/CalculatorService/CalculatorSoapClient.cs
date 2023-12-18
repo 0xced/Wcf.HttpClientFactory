@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+[assembly: ExcludeFromCodeCoverage]
+
 // ReSharper disable once CheckNamespace
 namespace ServiceReference;
 
