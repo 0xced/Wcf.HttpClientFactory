@@ -22,10 +22,6 @@ public static class ServiceCollectionExtensions
     {
         var contractDescription = ContractConfiguration<TContract>.ContractDescription;
 
-        var clientName = httpClientName ?? contractDescription.Name;
-        if (clientName == null) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be null.", nameof(TContract));
-        if (clientName.Length == 0) throw new ArgumentException($"The HTTP client name of {typeof(TContract).FullName} must not be an empty sting.", nameof(TContract));
-
         EnsureValidCacheSetting(contractDescription, lifetime, registerChannelFactory);
 
         var contractType = typeof(TContract);
@@ -37,6 +33,8 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton<TConfiguration>();
         services.TryAddSingleton<HttpMessageHandlerBehavior>();
+
+        var clientName = string.IsNullOrEmpty(httpClientName) ? contractDescription.Name : httpClientName;
 
         if (registerChannelFactory)
         {
