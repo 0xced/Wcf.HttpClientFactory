@@ -8,8 +8,6 @@
 /// </summary>
 internal class HttpMessageHandlerBehavior : IEndpointBehavior
 {
-    private static readonly PropertyInfo? Handler = typeof(HttpClientHandler).GetProperty("Handler", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
     private readonly IServiceProvider _serviceProvider;
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
 
@@ -24,13 +22,8 @@ internal class HttpMessageHandlerBehavior : IEndpointBehavior
         bindingParameters.Add((Func<HttpClientHandler, HttpMessageHandler>)(clientHandler =>
         {
             var httpServiceEndpoint = (HttpServiceEndpoint)endpoint;
-
-            var configureMessageHandler = true;
-            if (Handler?.GetValue(clientHandler) is SocketsHttpHandler socketsHttpHandler)
-            {
-                var configuration = (ContractConfiguration)_serviceProvider.GetRequiredService(httpServiceEndpoint.ContractConfigurationType);
-                configureMessageHandler = configuration.ConfigureSocketsHttpHandler(socketsHttpHandler);
-            }
+            var configuration = (ContractConfiguration)_serviceProvider.GetRequiredService(httpServiceEndpoint.ContractConfigurationType);
+            var configureMessageHandler = configuration.ConfigureSocketsHttpHandler(clientHandler.GetSocketsHttpHandler());
 
             if (configureMessageHandler)
             {
