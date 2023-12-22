@@ -8,11 +8,14 @@ namespace Wcf.HttpClientFactory.Tests;
 
 public class ServiceCollectionExtensionsTest
 {
-    [Fact]
-    public void AddContract_InvalidContractType_Throws()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("Name")]
+    public void AddContract_InvalidContractType_Throws(string? httpClientName)
     {
         var services = new ServiceCollection();
-        var action = () => services.AddContract<IServiceCollection>();
+        var action = () => services.AddContract<IServiceCollection>(httpClientName);
         action.Should().ThrowExactly<InvalidOperationException>().WithMessage("*ServiceContract*");
     }
 

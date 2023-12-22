@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
     {
         var contractDescription = ContractConfiguration<TContract>.ContractDescription;
 
-        EnsureValidCacheSetting(contractDescription, lifetime, registerChannelFactory);
+        EnsureValidCacheSetting<TContract>(lifetime, registerChannelFactory);
 
         var contractType = typeof(TContract);
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);
@@ -49,12 +49,13 @@ public static class ServiceCollectionExtensions
         return services.AddHttpClient(clientName);
     }
 
-    private static void EnsureValidCacheSetting(ContractDescription contractDescription, ServiceLifetime lifetime, bool registerChannelFactory)
+    private static void EnsureValidCacheSetting<TContract>(ServiceLifetime lifetime, bool registerChannelFactory)
+        where TContract : class
     {
         if (lifetime == ServiceLifetime.Singleton || registerChannelFactory)
             return;
 
-        var clientType = contractDescription.GetClientType();
+        var clientType = ContractConfiguration<TContract>.ClientType;
         const string cacheSettingName = nameof(ClientBase<object>.CacheSetting);
         var cacheSettingProperty = clientType.BaseType?.GetProperty(cacheSettingName, BindingFlags.Public | BindingFlags.Static)
                                    ?? throw new MissingMethodException(clientType.FullName, cacheSettingName);

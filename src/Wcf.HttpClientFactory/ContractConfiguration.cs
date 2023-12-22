@@ -5,10 +5,10 @@ public abstract class ContractConfiguration
     protected internal virtual bool ConfigureSocketsHttpHandler(SocketsHttpHandler socketsHttpHandler) => true;
 }
 
+[SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "One value per closed type is what is needed as they are actually constructed from TContract")]
 public class ContractConfiguration<TContract> : ContractConfiguration
     where TContract : class
 {
-    [SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "One value per closed type is what is needed as it's actually constructed from TContract")]
     private static ContractDescription? _contractDescription;
     internal static ContractDescription ContractDescription
     {
@@ -19,25 +19,33 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         }
     }
 
-    private readonly Type _clientType = ContractDescription.GetClientType();
+    private static Type? _clientType;
+    internal static Type ClientType
+    {
+        get
+        {
+            _clientType ??= typeof(TContract).GetClientType();
+            return _clientType;
+        }
+    }
 
-    private ConstructorInfo? _clientConstructor;
-    private ConstructorInfo ClientConstructor
+    private static ConstructorInfo? _clientConstructor;
+    private static ConstructorInfo ClientConstructor
     {
         get
         {
             if (_clientConstructor == null)
             {
-                _clientConstructor = _clientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(ServiceEndpoint) });
+                _clientConstructor = ClientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(ServiceEndpoint) });
                 if (_clientConstructor == null)
                 {
-                    var namespaceLines = _clientType.Namespace == null ? "" : $"{Environment.NewLine}namespace {_clientType.Namespace};{Environment.NewLine}";
+                    var namespaceLines = ClientType.Namespace == null ? "" : $"{Environment.NewLine}namespace {ClientType.Namespace};{Environment.NewLine}";
                     var message = $$"""
-                                    The {{_clientType.Name}} class is missing a constructor taking a ServiceEndpoint parameter. Please add the following code in your project:
+                                    The {{ClientType.Name}} class is missing a constructor taking a ServiceEndpoint parameter. Please add the following code in your project:
                                     {{namespaceLines}}
-                                    {{(_clientType.IsPublic ? "public" : "internal")}} partial class {{_clientType.Name}}
+                                    {{(ClientType.IsPublic ? "public" : "internal")}} partial class {{ClientType.Name}}
                                     {
-                                        public {{_clientType.Name}}(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
+                                        public {{ClientType.Name}}(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
                                         {
                                         }
                                     }
@@ -52,26 +60,26 @@ public class ContractConfiguration<TContract> : ContractConfiguration
 
     protected virtual Binding GetBinding()
     {
-        var getDefaultBinding = _clientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getDefaultBinding = ClientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultBinding != null)
-            return (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{_clientType.FullName}.{getDefaultBinding.Name} returned null"));
+            return (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultBinding.Name} returned null"));
 
-        var getBindingForEndpoint = _clientType.GetMethod("GetBindingForEndpoint", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getBindingForEndpoint = ClientType.GetMethod("GetBindingForEndpoint", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getBindingForEndpoint != null)
-            return (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{_clientType.FullName}.{getBindingForEndpoint.Name} returned null"));
+            return (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getBindingForEndpoint.Name} returned null"));
 
         throw MissingMethodException("GetBindingForEndpoint");
     }
 
     protected virtual EndpointAddress GetEndpointAddress()
     {
-        var getDefaultEndpointAddress = _clientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getDefaultEndpointAddress = ClientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultEndpointAddress != null)
-            return (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{_clientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
+            return (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
 
-        var getEndpointAddress = _clientType.GetMethod("GetEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        var getEndpointAddress = ClientType.GetMethod("GetEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getEndpointAddress != null)
-            return (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{_clientType.FullName}.{getEndpointAddress.Name} returned null"));
+            return (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getEndpointAddress.Name} returned null"));
 
         throw MissingMethodException("GetEndpointAddress");
     }
@@ -111,10 +119,10 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         return client;
     }
 
-    private Exception MissingMethodException(string missingMethodName)
+    private static Exception MissingMethodException(string missingMethodName)
     {
-        var message = $"The method {_clientType.FullName}.{missingMethodName} was not found. " +
-                      $"Was {_clientType.Name} generated with the https://www.nuget.org/packages/dotnet-svcutil tool?";
+        var message = $"The method {ClientType.FullName}.{missingMethodName} was not found. " +
+                      $"Was {ClientType.Name} generated with the https://www.nuget.org/packages/dotnet-svcutil tool?";
         return new MissingMethodException(message);
     }
 }
