@@ -89,14 +89,14 @@ public class ContractConfiguration<TContract> : ContractConfiguration
     }
 
     private ServiceEndpoint? _serviceEndpoint;
-    internal ServiceEndpoint GetServiceEndpoint<TConfiguration>(string httpClientName, HttpMessageHandlerBehavior httpMessageHandlerBehavior)
+    internal ServiceEndpoint GetServiceEndpoint<TConfiguration>(string httpClientName, HttpMessageHandlerBehavior<TConfiguration> httpMessageHandlerBehavior) where TConfiguration : ContractConfiguration
     {
         // Make sure that the ServiceEndpoint is the exact same instance for ClientBase caching to work properly, see https://github.com/dotnet/wcf/issues/5353
         if (_serviceEndpoint == null)
         {
             var binding = GetBinding();
             var endpointAddress = GetEndpointAddress();
-            _serviceEndpoint = new HttpServiceEndpoint(typeof(TConfiguration), httpClientName, ContractDescription, binding, endpointAddress);
+            _serviceEndpoint = new HttpServiceEndpoint(httpClientName, ContractDescription, binding, endpointAddress);
             _serviceEndpoint.EndpointBehaviors.Add(httpMessageHandlerBehavior);
         }
         return _serviceEndpoint;

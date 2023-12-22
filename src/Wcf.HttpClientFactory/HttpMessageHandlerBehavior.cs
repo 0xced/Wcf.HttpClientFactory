@@ -6,14 +6,14 @@
 /// [3]: https://github.com/dotnet/wcf/issues/4204
 /// [2]: https://github.com/dotnet/wcf/issues/4214
 /// </summary>
-internal class HttpMessageHandlerBehavior : IEndpointBehavior
+internal class HttpMessageHandlerBehavior<TConfiguration> : IEndpointBehavior where TConfiguration : ContractConfiguration
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly TConfiguration _configuration;
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
 
-    public HttpMessageHandlerBehavior(IServiceProvider serviceProvider, IHttpMessageHandlerFactory messageHandlerFactory)
+    public HttpMessageHandlerBehavior(TConfiguration configuration, IHttpMessageHandlerFactory messageHandlerFactory)
     {
-        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
     }
 
@@ -21,12 +21,11 @@ internal class HttpMessageHandlerBehavior : IEndpointBehavior
     {
         bindingParameters.Add((Func<HttpClientHandler, HttpMessageHandler>)(clientHandler =>
         {
-            var httpServiceEndpoint = (HttpServiceEndpoint)endpoint;
-            var configuration = (ContractConfiguration)_serviceProvider.GetRequiredService(httpServiceEndpoint.ContractConfigurationType);
-            var configureMessageHandler = configuration.ConfigureSocketsHttpHandler(clientHandler.GetSocketsHttpHandler());
+            var configureMessageHandler = _configuration.ConfigureSocketsHttpHandler(clientHandler.GetSocketsHttpHandler());
 
             if (configureMessageHandler)
             {
+                var httpServiceEndpoint = (HttpServiceEndpoint)endpoint;
                 var messageHandler = _httpMessageHandlerFactory.CreateHandler(httpServiceEndpoint.HttpClientName);
                 SetPrimaryHttpClientHandler(messageHandler, clientHandler);
                 return messageHandler;

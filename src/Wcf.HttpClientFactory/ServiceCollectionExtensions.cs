@@ -32,7 +32,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.TryAddSingleton<TConfiguration>();
-        services.TryAddSingleton<HttpMessageHandlerBehavior>();
+        services.TryAddSingleton<HttpMessageHandlerBehavior<TConfiguration>>();
 
         var clientName = string.IsNullOrEmpty(httpClientName) ? contractDescription.Name : httpClientName;
 
@@ -96,8 +96,8 @@ public static class ServiceCollectionExtensions
         where TConfiguration : ContractConfiguration<TContract>
     {
         var configuration = serviceProvider.GetRequiredService<TConfiguration>();
-        var httpMessageHandlerBehavior = serviceProvider.GetRequiredService<HttpMessageHandlerBehavior>();
-        var endpoint = configuration.GetServiceEndpoint<TConfiguration>(httpClientName, httpMessageHandlerBehavior);
+        var httpMessageHandlerBehavior = serviceProvider.GetRequiredService<HttpMessageHandlerBehavior<TConfiguration>>();
+        var endpoint = configuration.GetServiceEndpoint(httpClientName, httpMessageHandlerBehavior);
         return (configuration, endpoint);
     }
 
