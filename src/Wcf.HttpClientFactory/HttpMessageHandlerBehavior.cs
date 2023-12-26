@@ -1,11 +1,5 @@
 ﻿namespace Wcf.HttpClientFactory;
 
-/// <summary>
-/// See [Singleton WCF Client doesn't respect DNS changes][1] and [Leverage HttpClientFactory to get benefits of handlers][2] and [Question: How to assign custom HttpClient to Binding?][3]
-/// [1]: https://github.com/dotnet/wcf/issues/3230
-/// [3]: https://github.com/dotnet/wcf/issues/4204
-/// [2]: https://github.com/dotnet/wcf/issues/4214
-/// </summary>
 internal class HttpMessageHandlerBehavior<TConfiguration> : IEndpointBehavior where TConfiguration : ContractConfiguration
 {
     private readonly TConfiguration _configuration;

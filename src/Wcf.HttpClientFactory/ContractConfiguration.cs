@@ -1,10 +1,32 @@
 namespace Wcf.HttpClientFactory;
 
+/// <summary>
+/// The base class of <see cref="ContractConfiguration{TContract}"/>.
+/// </summary>
 public abstract class ContractConfiguration
 {
+    /// <summary>
+    /// Override this method to configure the underlying <see cref="SocketsHttpHandler"/> of the HTTP client.
+    /// For example, the <see cref="SocketsHttpHandler.PooledConnectionLifetime"/> property can be changed to properly observe DNS changes.
+    /// See the <a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient-guidelines#dns-behavior">Guidelines for using HttpClient</a> for more information.
+    /// </summary>
+    /// <param name="socketsHttpHandler">The <see cref="SocketsHttpHandler"/> to configure.</param>
+    /// <returns>
+    /// <see langword="true"/> in order to use the <see cref="HttpMessageHandler"/> provided by the registered <see cref="IHttpMessageHandlerFactory"/>;
+    /// <see langword="false"/> in order to use the default <see cref="HttpClientHandler"/> provided by WCF.
+    /// </returns>
     protected internal virtual bool ConfigureSocketsHttpHandler(SocketsHttpHandler socketsHttpHandler) => true;
 }
 
+/// <summary>
+/// Provides configuration opportunities for the service contract of type <typeparamref name="TContract"/>.
+/// <list type="bullet">
+/// <item>The contract binding can be configured by overriding the <see cref="GetBinding"/> method.</item>
+/// <item>The contract endpoint address can be configured by overriding the <see cref="GetEndpointAddress"/> method.</item>
+/// <item>The contract service endpoint and client credentials can be configured by overriding the <see cref="ConfigureEndpoint"/> method.</item>
+/// </list>
+/// </summary>
+/// <typeparam name="TContract">The service contract interface. This type must be decorated with the <see cref="ServiceContractAttribute"/>.</typeparam>
 [SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "One value per closed type is what is needed as they are actually constructed from TContract")]
 public class ContractConfiguration<TContract> : ContractConfiguration
     where TContract : class
@@ -58,6 +80,15 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         }
     }
 
+    /// <summary>
+    /// Override this method to provide the <see cref="Binding"/> to use for connecting to the service.
+    /// </summary>
+    /// <returns>The <see cref="Binding"/> to use for connecting to the service.</returns>
+    /// <remarks>
+    /// The default implementation searches for either a <c>GetDefaultBinding()</c> or a <c>GetBindingForEndpoint()</c> static method on the <see cref="ClientBase{TContract}"/> implementing
+    /// the service contract using reflection.
+    /// For this reason, it is recommended to always override this method.
+    /// </remarks>
     protected virtual Binding GetBinding()
     {
         var getDefaultBinding = ClientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -71,6 +102,15 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         throw MissingMethodException("GetBindingForEndpoint");
     }
 
+    /// <summary>
+    /// Override this method to provide the <see cref="EndpointAddress"/> to use for connecting to the service.
+    /// </summary>
+    /// <returns>The <see cref="EndpointAddress"/> to use for connecting to the service.</returns>
+    /// <remarks>
+    /// The default implementation searches for either a <c>GetDefaultEndpointAddress()</c> or a <c>GetEndpointAddress()</c> static method on the <see cref="ClientBase{TContract}"/> implementing
+    /// the service contract using reflection.
+    /// For this reason, it is recommended to always override this method.
+    /// </remarks>
     protected virtual EndpointAddress GetEndpointAddress()
     {
         var getDefaultEndpointAddress = ClientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -84,6 +124,11 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         throw MissingMethodException("GetEndpointAddress");
     }
 
+    /// <summary>
+    /// Optionally override this method to configure the <see cref="ServiceEndpoint"/> and/or the <see cref="ClientCredentials"/> used for connecting to the service.
+    /// </summary>
+    /// <param name="endpoint">The <see cref="ServiceEndpoint"/> used for connecting to the service.</param>
+    /// <param name="clientCredentials">The <see cref="ClientCredentials"/> used for connecting to the service.</param>
     protected virtual void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
     {
     }
