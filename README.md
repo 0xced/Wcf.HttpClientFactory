@@ -4,6 +4,13 @@ My attempt at using [IHttpClientFactory][1] with the WCF client libraries (`Syst
 
 See [Singleton WCF Client doesn't respect DNS changes][2] and [Leverage HttpClientFactory to get benefits of handlers][3] and [Question: How to assign custom HttpClient to Binding?][4]
 
+
+References:
+
+* [Guidelines for using HttpClient — DNS behavior](https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient-guidelines#dns-behavior)
+* [Channel Factory and Caching](https://learn.microsoft.com/en-us/dotnet/framework/wcf/feature-details/channel-factory-and-caching)
+
+
 [1]: https://learn.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests
 [2]: https://github.com/dotnet/wcf/issues/3230
 [3]: https://github.com/dotnet/wcf/issues/4204
@@ -12,8 +19,8 @@ See [Singleton WCF Client doesn't respect DNS changes][2] and [Leverage HttpClie
 ## Generating the B2BService client
 
 ```
-cd src\B2BService
-dotnet svcutil https://ebill-ki.postfinance.ch/B2BService/B2BService.svc --namespace "*, ServiceReference" --targetFramework net6.0
+cd src/B2BService
+dotnet svcutil --targetFramework net6.0 --namespace "*, ServiceReference" https://ebill-ki.postfinance.ch/B2BService/B2BService.svc
 dotnet new classlib -f net6.0
 dotnet add package System.ServiceModel.Http --version 6.2.0
 rm Class1.cs
