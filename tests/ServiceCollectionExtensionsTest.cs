@@ -15,7 +15,7 @@ public class ServiceCollectionExtensionsTest
     public void AddContract_InvalidContractType_Throws(string? httpClientName)
     {
         var services = new ServiceCollection();
-        var action = () => services.AddContract<IServiceCollection>(httpClientName);
+        var action = () => services.AddContract<IServiceCollection, ContractConfiguration<IServiceCollection>>(httpClientName);
         action.Should().ThrowExactly<InvalidOperationException>().WithMessage("*ServiceContract*");
     }
 
@@ -23,8 +23,8 @@ public class ServiceCollectionExtensionsTest
     public void AddContract_CallTwice_Throws()
     {
         var services = new ServiceCollection();
-        services.AddContract<HelloEndpoint>();
-        var action = () => services.AddContract<HelloEndpoint>();
+        services.AddContract<HelloEndpoint, ContractConfiguration<HelloEndpoint>>();
+        var action = () => services.AddContract<HelloEndpoint, ContractConfiguration<HelloEndpoint>>();
         action.Should().ThrowExactly<ArgumentException>().WithMessage("*already called*").WithParameterName("TContract");
     }
 }

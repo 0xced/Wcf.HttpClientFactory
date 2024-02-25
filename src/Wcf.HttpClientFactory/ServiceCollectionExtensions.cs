@@ -19,36 +19,6 @@ public static class ServiceCollectionExtensions
     /// or <see langword="false"/> to use <see cref="ClientBase{TContract}"/> for creating the <typeparamref name="TContract"/> instances.
     /// </param>
     /// <typeparam name="TContract">The type of the service contract to register. This type must be decorated with the <see cref="ServiceContractAttribute"/>.</typeparam>
-    /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the HTTP client.</returns>
-    /// <exception cref="ArgumentException">The <typeparamref name="TContract"/> has already been registered.</exception>
-    /// <exception cref="InvalidOperationException">
-    /// The <typeparamref name="TContract"/> is not a service contract or the <see cref="ClientBase{TContract}"/> cache setting is not properly configured.
-    /// </exception>
-    /// <seealso cref="AddContract{TContract,TConfiguration}"/>
-    public static IHttpClientBuilder AddContract<TContract>(
-        this IServiceCollection services,
-        string? httpClientName = null,
-        ServiceLifetime lifetime = ServiceLifetime.Transient,
-        bool registerChannelFactory = true)
-        where TContract : class
-    {
-        return AddContract<TContract, ContractConfiguration<TContract>>(services, httpClientName, lifetime, registerChannelFactory);
-    }
-
-    /// <summary>
-    /// Adds the <typeparamref name="TContract"/> and related services to the <see cref="IServiceCollection"/> and configures a named <see cref="HttpClient"/>.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/>.</param>
-    /// <param name="httpClientName">
-    /// The logical name of the <see cref="HttpClient"/> to configure.
-    /// Pass <see langword="null"/> or an empty string to use the default name from the contract.
-    /// </param>
-    /// <param name="lifetime">The <see cref="ServiceLifetime"/> of the registered contract.</param>
-    /// <param name="registerChannelFactory">
-    /// Either <see langword="true"/> to register a singleton <see cref="ChannelFactory{TContract}"/> for creating the <typeparamref name="TContract"/> instances
-    /// or <see langword="false"/> to use <see cref="ClientBase{TContract}"/> for creating the <typeparamref name="TContract"/> instances.
-    /// </param>
-    /// <typeparam name="TContract">The type of the service contract to register. This type must be decorated with the <see cref="ServiceContractAttribute"/>.</typeparam>
     /// <typeparam name="TConfiguration">
     /// The type of the contract's configuration which provides the <see cref="Binding"/>, the <see cref="EndpointAddress"/> and enables configuration of the credentials.
     /// </typeparam>

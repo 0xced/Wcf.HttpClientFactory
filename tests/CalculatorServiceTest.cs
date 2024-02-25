@@ -19,7 +19,7 @@ public class CalculatorServiceTest
     public async Task TestCalculatorSuccess(ServiceLifetime lifetime, bool registerChannelFactory)
     {
         var services = new ServiceCollection();
-        services.AddContract<CalculatorSoap>("Calculator", lifetime, registerChannelFactory);
+        services.AddContract<CalculatorSoap, ContractConfiguration<CalculatorSoap>>("Calculator", lifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 
@@ -36,7 +36,7 @@ public class CalculatorServiceTest
     public async Task TestCalculatorError(ServiceLifetime lifetime, bool registerChannelFactory)
     {
         var services = new ServiceCollection();
-        services.AddContract<CalculatorSoap>("Calculator", lifetime, registerChannelFactory);
+        services.AddContract<CalculatorSoap, ContractConfiguration<CalculatorSoap>>("Calculator", lifetime, registerChannelFactory);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 
