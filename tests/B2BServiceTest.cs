@@ -85,7 +85,7 @@ public class B2BServiceTest
             }
             catch (CommunicationObjectFaultedException)
             {
-                Skip.If(registerChannelFactory, "ServiceChannelProxy should implement IAsyncDisposable but currently doesn't, see https://github.com/dotnet/wcf/issues/5270");
+                Skip.If(registerChannelFactory, "ServiceChannelProxy should implement IAsyncDisposable but doesn't as of v8.0.0, see https://github.com/dotnet/wcf/pull/5385#issuecomment-2013745606");
                 throw;
             }
         }
