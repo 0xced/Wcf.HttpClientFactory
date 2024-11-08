@@ -27,7 +27,7 @@ public class WcfEventListener : EventListener
 
     protected override void OnEventWritten(EventWrittenEventArgs eventData)
     {
-        var message = string.Format(eventData.Message ?? "", args: eventData.Payload?.ToArray() ?? Array.Empty<object>());
+        var message = string.Format(eventData.Message ?? "", args: eventData.Payload?.ToArray() ?? []);
         var name = eventData.EventSource.Guid == _wcfEventSourceGuid ? "WCF" : eventData.EventSource.Name;
         _outputHelper.WriteLine($"[{name}] {message}");
     }

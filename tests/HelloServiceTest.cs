@@ -124,7 +124,7 @@ public sealed class HelloServiceTest : IClassFixture<LearnWebservicesFixture>, I
 
     private class InterceptingHandler : DelegatingHandler
     {
-        private readonly List<HttpRequestMessage> _requests = new();
+        private readonly List<HttpRequestMessage> _requests = [];
 
         public IEnumerable<HttpRequestMessage> Requests => _requests;
 

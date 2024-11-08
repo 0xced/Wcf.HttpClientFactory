@@ -58,7 +58,7 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         {
             if (_clientConstructor == null)
             {
-                _clientConstructor = ClientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(ServiceEndpoint) });
+                _clientConstructor = ClientType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, [typeof(ServiceEndpoint)]);
                 if (_clientConstructor == null)
                 {
                     var namespaceLines = ClientType.Namespace == null ? "" : $"{Environment.NewLine}namespace {ClientType.Namespace};{Environment.NewLine}";
@@ -93,11 +93,11 @@ public class ContractConfiguration<TContract> : ContractConfiguration
     {
         var getDefaultBinding = ClientType.GetMethod("GetDefaultBinding", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultBinding != null)
-            return (Binding)(getDefaultBinding.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultBinding.Name} returned null"));
+            return (Binding)(getDefaultBinding.Invoke(null, []) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultBinding.Name} returned null"));
 
         var getBindingForEndpoint = ClientType.GetMethod("GetBindingForEndpoint", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getBindingForEndpoint != null)
-            return (Binding)(getBindingForEndpoint.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getBindingForEndpoint.Name} returned null"));
+            return (Binding)(getBindingForEndpoint.Invoke(null, [0]) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getBindingForEndpoint.Name} returned null"));
 
         throw MissingMethodException("GetBindingForEndpoint");
     }
@@ -115,11 +115,11 @@ public class ContractConfiguration<TContract> : ContractConfiguration
     {
         var getDefaultEndpointAddress = ClientType.GetMethod("GetDefaultEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getDefaultEndpointAddress != null)
-            return (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, Array.Empty<object>()) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
+            return (EndpointAddress)(getDefaultEndpointAddress.Invoke(null, []) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getDefaultEndpointAddress.Name} returned null"));
 
         var getEndpointAddress = ClientType.GetMethod("GetEndpointAddress", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         if (getEndpointAddress != null)
-            return (EndpointAddress)(getEndpointAddress.Invoke(null, new object[] { 0 }) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getEndpointAddress.Name} returned null"));
+            return (EndpointAddress)(getEndpointAddress.Invoke(null, [0]) ?? throw new InvalidOperationException($"{ClientType.FullName}.{getEndpointAddress.Name} returned null"));
 
         throw MissingMethodException("GetEndpointAddress");
     }
@@ -156,7 +156,7 @@ public class ContractConfiguration<TContract> : ContractConfiguration
 
     internal ClientBase<TContract> CreateClient(ServiceEndpoint serviceEndpoint)
     {
-        var client = (ClientBase<TContract>)ClientConstructor.Invoke(new object[] { serviceEndpoint });
+        var client = (ClientBase<TContract>)ClientConstructor.Invoke([serviceEndpoint]);
         if (client.ChannelFactory.State == CommunicationState.Created)
         {
             ConfigureEndpoint(client.Endpoint, client.ClientCredentials);
