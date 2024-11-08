@@ -18,42 +18,27 @@ using Xunit.Abstractions;
 
 namespace Wcf.HttpClientFactory.Tests;
 
-public sealed class HelloServiceTest : IClassFixture<LearnWebservicesFixture>, IDisposable
+public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutputHelper outputHelper) : IClassFixture<LearnWebservicesFixture>, IDisposable
 {
-    static HelloServiceTest()
-    {
-        HelloEndpointClient.CacheSetting = CacheSetting.AlwaysOn;
-    }
+    static HelloServiceTest() => HelloEndpointClient.CacheSetting = CacheSetting.AlwaysOn;
 
-    private readonly LearnWebservicesFixture _fixture;
-    private readonly ITestOutputHelper _outputHelper;
-    private readonly WcfEventListener _eventListener;
+    private readonly WcfEventListener _eventListener = new(outputHelper);
 
-    public HelloServiceTest(LearnWebservicesFixture fixture, ITestOutputHelper outputHelper)
-    {
-        _fixture = fixture;
-        _outputHelper = outputHelper;
-        _eventListener = new WcfEventListener(outputHelper);
-    }
-
-    public void Dispose()
-    {
-        _eventListener.Dispose();
-    }
+    public void Dispose() => _eventListener.Dispose();
 
     [SkippableTheory]
     [CombinatorialData]
     public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory, bool useDefaultUrl, bool configureMessageHandler)
     {
-        Skip.If(useDefaultUrl && !_fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
+        Skip.If(useDefaultUrl && !fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
 
         var configuration = new Dictionary<string, string?>
         {
-            [$"HelloService:{nameof(HelloOptions.Url)}"] = useDefaultUrl ? null : _fixture.WebServiceUri.AbsoluteUri,
+            [$"HelloService:{nameof(HelloOptions.Url)}"] = useDefaultUrl ? null : fixture.WebServiceUri.AbsoluteUri,
             [$"HelloService:{nameof(HelloOptions.ConfigureMessageHandler)}"] = configureMessageHandler.ToString(),
         };
         var services = new ServiceCollection();
-        services.AddLogging(c => c.AddXUnit(_outputHelper));
+        services.AddLogging(c => c.AddXUnit(outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
         var interceptor = new InterceptingHandler();
@@ -87,38 +72,33 @@ public sealed class HelloServiceTest : IClassFixture<LearnWebservicesFixture>, I
     }
 
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local", Justification = "It's instantiated through the dependency injection container")]
-    private class HelloConfiguration : ContractConfiguration<HelloEndpoint>
+    private class HelloConfiguration(IOptions<HelloOptions> options) : ContractConfiguration<HelloEndpoint>
     {
-        private readonly IOptions<HelloOptions> _options;
-
-        public HelloConfiguration(IOptions<HelloOptions> options) => _options = options;
-
         protected override Binding GetBinding()
         {
-            var url = _options.Value.Url;
+            var url = options.Value.Url;
             var mode = url?.Scheme == "http" ? BasicHttpSecurityMode.None : BasicHttpSecurityMode.Transport;
             return new BasicHttpBinding { AllowCookies = true, Security = { Mode = mode } };
         }
 
         protected override EndpointAddress GetEndpointAddress()
         {
-            var url = _options.Value.Url;
+            var url = options.Value.Url;
             return url == null ? base.GetEndpointAddress() : new EndpointAddress(url);
         }
 
         protected override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
         {
             _ = endpoint;
-            var options = _options.Value;
             var credential = clientCredentials.UserName;
-            credential.UserName = options.UserName;
-            credential.Password = options.Password;
+            credential.UserName = options.Value.UserName;
+            credential.Password = options.Value.Password;
         }
 
         protected override bool ConfigureSocketsHttpHandler(SocketsHttpHandler socketsHttpHandler)
         {
             socketsHttpHandler.PooledConnectionLifetime = TimeSpan.FromHours(2);
-            return _options.Value.ConfigureMessageHandler;
+            return options.Value.ConfigureMessageHandler;
         }
     }
 

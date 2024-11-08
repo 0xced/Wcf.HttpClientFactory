@@ -15,20 +15,16 @@ using Xunit.Abstractions;
 
 namespace Wcf.HttpClientFactory.Tests;
 
-public class B2BServiceTest
+public class B2BServiceTest(ITestOutputHelper outputHelper)
 {
     static B2BServiceTest() => B2BServiceClient.CacheSetting = CacheSetting.AlwaysOn;
-
-    private readonly ITestOutputHelper _outputHelper;
-
-    public B2BServiceTest(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [SkippableTheory]
     [CombinatorialData]
     public async Task TestB2BServiceSuccess(bool registerChannelFactory)
     {
         var services = new ServiceCollection();
-        services.AddLogging(c => c.AddXUnit(_outputHelper));
+        services.AddLogging(c => c.AddXUnit(outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddEnvironmentVariables().Build());
         services.AddOptions<B2BServiceOptions>().BindConfiguration("B2BService");
         services.AddContract<B2BService, B2BServiceConfiguration>(registerChannelFactory: registerChannelFactory);
@@ -54,7 +50,7 @@ public class B2BServiceTest
     public async Task TestB2BServiceError(bool asyncScope, bool registerChannelFactory)
     {
         var services = new ServiceCollection();
-        services.AddLogging(c => c.AddXUnit(_outputHelper));
+        services.AddLogging(c => c.AddXUnit(outputHelper));
         var configuration = new Dictionary<string, string?>
         {
             [$"B2BService:{nameof(B2BServiceOptions.User)}"] = "wrong-user",
@@ -107,24 +103,19 @@ public class B2BServiceTest
     }
 
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local", Justification = "It's instantiated through the dependency injection container")]
-    private class B2BServiceConfiguration : ContractConfiguration<B2BService>
+    private class B2BServiceConfiguration(IOptions<B2BServiceOptions> options) : ContractConfiguration<B2BService>
     {
-        private readonly IOptions<B2BServiceOptions> _options;
-
-        public B2BServiceConfiguration(IOptions<B2BServiceOptions> options) => _options = options;
-
         protected override EndpointAddress GetEndpointAddress()
         {
-            var url = _options.Value.Url;
+            var url = options.Value.Url;
             return url == null ? base.GetEndpointAddress() : new EndpointAddress(url);
         }
 
         protected override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
         {
-            var options = _options.Value;
             var credentials = clientCredentials.UserName;
-            credentials.UserName = options.User;
-            credentials.Password = options.Password;
+            credentials.UserName = options.Value.User;
+            credentials.Password = options.Value.Password;
         }
     }
 }

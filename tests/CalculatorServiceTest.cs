@@ -9,10 +9,7 @@ namespace Wcf.HttpClientFactory.Tests;
 
 public class CalculatorServiceTest
 {
-    static CalculatorServiceTest()
-    {
-        CalculatorSoapClient.CacheSetting = CacheSetting.AlwaysOn;
-    }
+    static CalculatorServiceTest() => CalculatorSoapClient.CacheSetting = CacheSetting.AlwaysOn;
 
     [Theory]
     [CombinatorialData]

@@ -20,6 +20,7 @@ public class LearnWebservicesFixture(IMessageSink messageSink) : IAsyncLifetime
     private LearnWebservicesContainer? _container;
 
     public Uri WebServiceUri => _container?.WebServiceUri ?? HelloEndpointClient.DefaultUri;
+
     public bool IsServiceAvailable { get; private set; }
 
     async Task IAsyncLifetime.InitializeAsync()
