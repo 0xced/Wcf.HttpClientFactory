@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Security;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Versioning;
 using ServiceReference;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,7 +20,17 @@ namespace Wcf.HttpClientFactory.Tests;
 
 public class B2BServiceTest(ITestOutputHelper outputHelper)
 {
-    static B2BServiceTest() => B2BServiceClient.CacheSetting = CacheSetting.AlwaysOn;
+    private static readonly SemanticVersion WcfVersion;
+
+    static B2BServiceTest()
+    {
+        B2BServiceClient.CacheSetting = CacheSetting.AlwaysOn;
+
+        var assembly = typeof(ChannelFactory).Assembly;
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+                      ?? throw new InvalidOperationException($"{assembly} is missing the AssemblyInformationalVersion attribute");
+        WcfVersion = SemanticVersion.Parse(version);
+    }
 
     [SkippableTheory]
     [CombinatorialData]
@@ -81,7 +94,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
             }
             catch (CommunicationObjectFaultedException)
             {
-                Skip.If(registerChannelFactory, "ServiceChannelProxy should implement IAsyncDisposable but doesn't as of v8.0.0, see https://github.com/dotnet/wcf/pull/5385#issuecomment-2013745606");
+                Skip.If(registerChannelFactory && WcfVersion <= new SemanticVersion(8, 0, 0), "ServiceChannelProxy should implement IAsyncDisposable but doesn't as of v8.0.0, see https://github.com/dotnet/wcf/pull/5385#issuecomment-2013745606");
                 throw;
             }
         }

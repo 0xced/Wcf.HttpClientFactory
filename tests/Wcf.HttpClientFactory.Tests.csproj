@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NuGet.Versioning" Version="6.11.1" />
     <PackageReference Include="PublicApiGenerator" Version="11.1.0" />
     <PackageReference Include="ReportGenerator" Version="5.3.11" PrivateAssets="all" />
     <PackageReference Include="Testcontainers" Version="4.0.0" />
