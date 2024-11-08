@@ -15,12 +15,9 @@ using Xunit.Abstractions;
 namespace Wcf.HttpClientFactory.Tests;
 
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global", Justification = "It is instantiated by Xunit")]
-public class LearnWebservicesFixture : IAsyncLifetime
+public class LearnWebservicesFixture(IMessageSink messageSink) : IAsyncLifetime
 {
-    private readonly IMessageSink _messageSink;
     private LearnWebservicesContainer? _container;
-
-    public LearnWebservicesFixture(IMessageSink messageSink) => _messageSink = messageSink;
 
     public Uri WebServiceUri => _container?.WebServiceUri ?? HelloEndpointClient.DefaultUri;
     public bool IsServiceAvailable { get; private set; }
@@ -48,11 +45,10 @@ public class LearnWebservicesFixture : IAsyncLifetime
 
     private Task StartContainerAsync()
     {
-        var logger = new XUnitLogger(nameof(LearnWebservicesFixture), _messageSink, null);
+        var logger = new XUnitLogger(nameof(LearnWebservicesFixture), messageSink, null);
         _container = new LearnWebservicesBuilder(logger).Build();
         return _container.StartAsync();
     }
-
 
     Task IAsyncLifetime.DisposeAsync()
     {
@@ -61,16 +57,13 @@ public class LearnWebservicesFixture : IAsyncLifetime
 
     private sealed class LearnWebservicesBuilder : ContainerBuilder<LearnWebservicesBuilder, LearnWebservicesContainer, ContainerConfiguration>
     {
-        private readonly ILogger _logger;
-
-        public LearnWebservicesBuilder(ILogger logger) : this(new ContainerConfiguration(), logger)
+        public LearnWebservicesBuilder(ILogger logger) : this(new ContainerConfiguration())
         {
-            DockerResourceConfiguration = Init().DockerResourceConfiguration;
+            DockerResourceConfiguration = Init().WithLogger(logger).DockerResourceConfiguration;
         }
 
-        private LearnWebservicesBuilder(ContainerConfiguration configuration, ILogger logger) : base(configuration)
+        private LearnWebservicesBuilder(ContainerConfiguration configuration) : base(configuration)
         {
-            _logger = logger;
             DockerResourceConfiguration = configuration;
         }
 
@@ -87,7 +80,7 @@ public class LearnWebservicesFixture : IAsyncLifetime
         public override LearnWebservicesContainer Build()
         {
             Validate();
-            return new LearnWebservicesContainer(DockerResourceConfiguration, _logger);
+            return new LearnWebservicesContainer(DockerResourceConfiguration);
         }
 
         protected override LearnWebservicesBuilder Clone(IResourceConfiguration<CreateContainerParameters> resourceConfiguration)
@@ -102,16 +95,12 @@ public class LearnWebservicesFixture : IAsyncLifetime
 
         protected override LearnWebservicesBuilder Merge(ContainerConfiguration oldValue, ContainerConfiguration newValue)
         {
-            return new LearnWebservicesBuilder(new ContainerConfiguration(oldValue, newValue), _logger);
+            return new LearnWebservicesBuilder(new ContainerConfiguration(oldValue, newValue));
         }
     }
 
-    private sealed class LearnWebservicesContainer : DockerContainer
+    private sealed class LearnWebservicesContainer(IContainerConfiguration configuration) : DockerContainer(configuration)
     {
-        public LearnWebservicesContainer(IContainerConfiguration configuration, ILogger logger) : base(configuration, logger)
-        {
-        }
-
         public Uri WebServiceUri => new($"http://localhost:{GetMappedPublicPort(8080)}/services/hello");
     }
 }

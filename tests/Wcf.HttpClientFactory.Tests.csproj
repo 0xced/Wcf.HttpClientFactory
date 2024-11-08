@@ -8,20 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.1" PrivateAssets="all" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2" PrivateAssets="all" />
+    <PackageReference Include="FluentAssertions" Version="6.12.2" />
+    <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.4.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="PublicApiGenerator" Version="11.1.0" />
-    <PackageReference Include="ReportGenerator" Version="5.2.1" PrivateAssets="all" />
-    <PackageReference Include="Testcontainers" Version="3.7.0" />
-    <PackageReference Include="Verify.Xunit" Version="23.2.1" />
-    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="ReportGenerator" Version="5.3.11" PrivateAssets="all" />
+    <PackageReference Include="Testcontainers" Version="4.0.0" />
+    <PackageReference Include="Verify.Xunit" Version="28.1.3" />
+    <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="Xunit.Combinatorial" Version="1.6.24" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" PrivateAssets="all" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" PrivateAssets="all" />
     <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
 
@@ -45,6 +45,10 @@
     <ProjectReference Include="..\src\CalculatorService\CalculatorService.csproj" />
     <ProjectReference Include="..\src\HelloService\HelloService.csproj" />
     <ProjectReference Include="..\src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
