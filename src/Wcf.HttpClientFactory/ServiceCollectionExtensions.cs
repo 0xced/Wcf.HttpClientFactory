@@ -35,15 +35,17 @@ public static class ServiceCollectionExtensions
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
-        var contractDescription = ContractConfiguration<TContract>.ContractDescription;
+        // This validates that TContract is a valid service contract
+        var contractDescription = GetContractDescription<TContract>();
 
-        EnsureValidCacheSetting<TContract>(lifetime, registerChannelFactory);
+        EnsureValidCacheSetting<TContract, TConfiguration>(lifetime, registerChannelFactory);
 
         var contractType = typeof(TContract);
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);
         if (descriptor != null)
         {
-            throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).Name}> method must be called only once and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
+            throw new ArgumentException($"The {nameof(AddContract)}<{typeof(TContract).GetFormattedName()}, {typeof(TConfiguration).GetFormattedName()}>() method must be called only once " +
+                                        $"and it was already called (with a {descriptor.Lifetime} lifetime)", nameof(TContract));
         }
 
         services.TryAddSingleton<TConfiguration>();
@@ -64,13 +66,13 @@ public static class ServiceCollectionExtensions
         return services.AddHttpClient(clientName);
     }
 
-    private static void EnsureValidCacheSetting<TContract>(ServiceLifetime lifetime, bool registerChannelFactory)
+    private static void EnsureValidCacheSetting<TContract, TConfiguration>(ServiceLifetime lifetime, bool registerChannelFactory)
         where TContract : class
     {
         if (lifetime == ServiceLifetime.Singleton || registerChannelFactory)
             return;
 
-        var clientType = ContractConfiguration<TContract>.ClientType;
+        var clientType = GetClientType<TContract, TConfiguration>();
         const string cacheSettingName = nameof(ClientBase<object>.CacheSetting);
         var cacheSettingProperty = clientType.BaseType?.GetProperty(cacheSettingName, BindingFlags.Public | BindingFlags.Static)
                                    ?? throw new MissingMethodException(clientType.FullName, cacheSettingName);
@@ -86,6 +88,37 @@ public static class ServiceCollectionExtensions
 
                       """.ReplaceLineEndings();
         throw new InvalidOperationException(message);
+    }
+
+    private static ContractDescription GetContractDescription<TContract>() where TContract : class
+    {
+        try
+        {
+            return ContractConfiguration<TContract>.ContractDescription;
+        }
+        catch (InvalidOperationException exception)
+        {
+            throw new ArgumentException(exception.Message, nameof(TContract));
+        }
+    }
+
+    private static Type GetClientType<TContract, TConfiguration>() where TContract : class
+    {
+        try
+        {
+            return ContractConfiguration<TContract>.ClientType;
+        }
+        catch (ContractTypeException exception)
+        {
+            var inheritsContractConfiguration = typeof(TConfiguration) != typeof(ContractConfiguration<TContract>);
+            var configurationName = inheritsContractConfiguration ? typeof(TConfiguration).GetFormattedName() : $"ContractConfiguration<{exception.InterfaceType.Name}>";
+            var message = new StringBuilder($", try with AddContract<{exception.InterfaceType.Name}, {configurationName}>() instead");
+            if (inheritsContractConfiguration)
+            {
+                message.Append($" and make {configurationName} inherit from ContractConfiguration<{exception.InterfaceType.Name}>");
+            }
+            throw new ArgumentException(exception.Message + message, nameof(TContract));
+        }
     }
 
     private static TContract CreateClient<TContract, TConfiguration>(IServiceProvider serviceProvider, string httpClientName)

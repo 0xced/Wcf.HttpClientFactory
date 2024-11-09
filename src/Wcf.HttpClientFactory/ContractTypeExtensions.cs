@@ -9,9 +9,20 @@ internal static class ContractTypeExtensions
         var clientTypes = assembly.GetTypes().Where(e => e.IsAssignableTo(contractType) && e.IsAssignableTo(clientBaseType)).ToList();
         return clientTypes.Count switch
         {
-            0 => throw new InvalidOperationException($"No ClientBase<{contractType.FullName}> implementing the {contractType.FullName} contract were found in {assembly}"),
+            0 => throw new InvalidOperationException(GetMessage(contractType)),
             1 => clientTypes[0],
-            _ => throw new InvalidOperationException($"Multiple ClientBase<{contractType.FullName}> implementing the {contractType.FullName} contract were found in {assembly}"),
+            _ => throw new InvalidOperationException($"Multiple ClientBase<{contractType.GetFormattedName(TypeNameFormatOptions.Namespaces)}> were found in the {assembly.GetName().Name} assembly"),
         };
+    }
+
+    private static string GetMessage(Type contractType)
+    {
+        var message = $"No ClientBase<{contractType.GetFormattedName(TypeNameFormatOptions.Namespaces)}> were found in the {contractType.Assembly.GetName().Name} assembly";
+        var interfaces = contractType.GetInterfaces().Where(e => e.Assembly == contractType.Assembly).ToList();
+        if (interfaces.Count == 1)
+        {
+            throw new ContractTypeException(message, interfaces[0]);
+        }
+        return message;
     }
 }
