@@ -20,8 +20,6 @@ namespace Wcf.HttpClientFactory.Tests;
 
 public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutputHelper outputHelper) : IClassFixture<LearnWebservicesFixture>, IDisposable
 {
-    static HelloServiceTest() => HelloEndpointClient.CacheSetting = CacheSetting.AlwaysOn;
-
     private readonly WcfEventListener _eventListener = new(outputHelper);
 
     public void Dispose() => _eventListener.Dispose();

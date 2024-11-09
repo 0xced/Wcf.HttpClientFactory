@@ -9,8 +9,6 @@ namespace Wcf.HttpClientFactory.Tests;
 
 public class CalculatorServiceTest
 {
-    static CalculatorServiceTest() => CalculatorSoapClient.CacheSetting = CacheSetting.AlwaysOn;
-
     [Theory]
     [CombinatorialData]
     public async Task TestCalculatorSuccess(ServiceLifetime lifetime, bool registerChannelFactory)

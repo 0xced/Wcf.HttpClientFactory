@@ -24,8 +24,6 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 
     static B2BServiceTest()
     {
-        B2BServiceClient.CacheSetting = CacheSetting.AlwaysOn;
-
         var assembly = typeof(ChannelFactory).Assembly;
         var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
                       ?? throw new InvalidOperationException($"{assembly} is missing the AssemblyInformationalVersion attribute");
