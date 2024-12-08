@@ -20,16 +20,6 @@ namespace Wcf.HttpClientFactory.Tests;
 
 public class B2BServiceTest(ITestOutputHelper outputHelper)
 {
-    private static readonly SemanticVersion WcfVersion;
-
-    static B2BServiceTest()
-    {
-        var assembly = typeof(ChannelFactory).Assembly;
-        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                      ?? throw new InvalidOperationException($"{assembly} is missing the AssemblyInformationalVersion attribute");
-        WcfVersion = SemanticVersion.Parse(version);
-    }
-
     [SkippableTheory]
     [CombinatorialData]
     public async Task TestB2BServiceSuccess(bool registerChannelFactory)
@@ -86,19 +76,11 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
         if (asyncScope)
         {
             // DisposeAsync works fine, even when in a faulted state thanks to https://github.com/dotnet/wcf/pull/4865
-            try
-            {
-                await scope.DisposeAsync();
-            }
-            catch (CommunicationObjectFaultedException)
-            {
-                Skip.If(registerChannelFactory && WcfVersion <= new SemanticVersion(8, 0, 0), "ServiceChannelProxy should implement IAsyncDisposable but doesn't as of v8.0.0, see https://github.com/dotnet/wcf/pull/5385#issuecomment-2013745606");
-                throw;
-            }
+            await scope.DisposeAsync();
         }
         else
         {
-            // Dispose throws ¯\_(ツ)_/¯
+            // Dispose throws "by design" ¯\_(ツ)_/¯
             var dispose = () => scope.Dispose();
             dispose.Should().ThrowExactly<CommunicationObjectFaultedException>();
         }
