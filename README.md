@@ -20,10 +20,10 @@ dotnet tool install --global --verbosity normal dotnet-svcutil
 
 ```sh
 mkdir HelloService && cd HelloService
-dotnet svcutil --targetFramework net6.0 --namespace "*, LearnWebServices" "https://apps.learnwebservices.com/services/hello?WSDL"
-dotnet new classlib -f net6.0
+DOTNET_ROLL_FORWARD=LatestMajor dotnet svcutil --targetFramework net8.0 --namespace "*, LearnWebServices" "https://apps.learnwebservices.com/services/hello?WSDL"
+dotnet new classlib -f net8.0
 rm Class1.cs
-dotnet add package System.ServiceModel.Http --version 6.2.0
+dotnet add package System.ServiceModel.Http
 ```
 
 This generates the `HelloEndpoint` interface and its associated `HelloEndpointClient` implementation.
@@ -60,6 +60,7 @@ TODO:
 
 * [Channel Factory and Caching](https://learn.microsoft.com/en-us/dotnet/framework/wcf/feature-details/channel-factory-and-caching)
 * [Guidelines for using HttpClient — DNS behavior](https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient-guidelines#dns-behavior)
+* [Avoid DNS issues with HttpClient in .NET](https://www.meziantou.net/avoid-dns-issues-with-httpclient-in-dotnet.htm)
 
 Related WCF issues:
 
