@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ServiceReference;
 using Testcontainers.Xunit;
-using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Wcf.HttpClientFactory.Tests;
 
@@ -17,7 +17,7 @@ public class LearnWebservicesFixture(IMessageSink messageSink) : ContainerFixtur
 
     public bool IsServiceAvailable { get; private set; }
 
-    protected override async Task InitializeAsync()
+    protected override async ValueTask InitializeAsync()
     {
         try
         {

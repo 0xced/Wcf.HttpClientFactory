@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Tracing;
 using System.Linq;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Wcf.HttpClientFactory.Tests;
 

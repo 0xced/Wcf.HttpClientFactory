@@ -14,7 +14,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ServiceReference;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Wcf.HttpClientFactory.Tests;
 
@@ -24,11 +23,11 @@ public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutpu
 
     public void Dispose() => _eventListener.Dispose();
 
-    [SkippableTheory]
+    [Theory]
     [CombinatorialData]
     public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory, bool useDefaultUrl, bool configureMessageHandler)
     {
-        Skip.If(useDefaultUrl && !fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
+        Assert.SkipWhen(useDefaultUrl && !fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
 
         var configuration = new Dictionary<string, string?>
         {

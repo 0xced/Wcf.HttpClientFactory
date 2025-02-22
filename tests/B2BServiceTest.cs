@@ -11,13 +11,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ServiceReference;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Wcf.HttpClientFactory.Tests;
 
 public class B2BServiceTest(ITestOutputHelper outputHelper)
 {
-    [SkippableTheory]
+    [Theory]
     [CombinatorialData]
     public async Task TestB2BServiceSuccess(bool registerChannelFactory)
     {
@@ -31,9 +30,9 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
         await using var scope = serviceProvider.CreateAsyncScope();
 
         var options = serviceProvider.GetRequiredService<IOptions<B2BServiceOptions>>().Value;
-        Skip.If(string.IsNullOrEmpty(options.User), $"The B2BService:{nameof(B2BServiceOptions.User)} environment variable must be configured");
-        Skip.If(string.IsNullOrEmpty(options.Password), $"The B2BService:{nameof(B2BServiceOptions.Password)} environment variable must be configured");
-        Skip.If(string.IsNullOrEmpty(options.BillerId), $"The B2BService:{nameof(B2BServiceOptions.BillerId)} environment variable must be configured");
+        Assert.SkipWhen(string.IsNullOrEmpty(options.User), $"The B2BService:{nameof(B2BServiceOptions.User)} environment variable must be configured");
+        Assert.SkipWhen(string.IsNullOrEmpty(options.Password), $"The B2BService:{nameof(B2BServiceOptions.Password)} environment variable must be configured");
+        Assert.SkipWhen(string.IsNullOrEmpty(options.BillerId), $"The B2BService:{nameof(B2BServiceOptions.BillerId)} environment variable must be configured");
 
         for (var i = 1; i <= 2; i++)
         {
@@ -43,7 +42,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
         }
     }
 
-    [SkippableTheory]
+    [Theory]
     [CombinatorialData]
     public async Task TestB2BServiceError(bool asyncScope, bool registerChannelFactory)
     {
