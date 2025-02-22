@@ -2,12 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Docker.DotNet.Models;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
-using DotNet.Testcontainers.Containers;
 using MartinCostello.Logging.XUnit;
-using Microsoft.Extensions.Logging;
 using ServiceReference;
 using Xunit;
 using Xunit.Abstractions;
@@ -54,54 +49,5 @@ public class LearnWebservicesFixture(IMessageSink messageSink) : IAsyncLifetime
     Task IAsyncLifetime.DisposeAsync()
     {
         return _container?.StopAsync() ?? Task.CompletedTask;
-    }
-
-    private sealed class LearnWebservicesBuilder : ContainerBuilder<LearnWebservicesBuilder, LearnWebservicesContainer, ContainerConfiguration>
-    {
-        public LearnWebservicesBuilder(ILogger logger) : this(new ContainerConfiguration())
-        {
-            DockerResourceConfiguration = Init().WithLogger(logger).DockerResourceConfiguration;
-        }
-
-        private LearnWebservicesBuilder(ContainerConfiguration configuration) : base(configuration)
-        {
-            DockerResourceConfiguration = configuration;
-        }
-
-        protected override ContainerConfiguration DockerResourceConfiguration { get; }
-
-        protected override LearnWebservicesBuilder Init()
-        {
-            return base.Init()
-                .WithImage("vicziani/lwsapp")
-                .WithPortBinding(8080, assignRandomHostPort: true)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(8080));
-        }
-
-        public override LearnWebservicesContainer Build()
-        {
-            Validate();
-            return new LearnWebservicesContainer(DockerResourceConfiguration);
-        }
-
-        protected override LearnWebservicesBuilder Clone(IResourceConfiguration<CreateContainerParameters> resourceConfiguration)
-        {
-            return Merge(DockerResourceConfiguration, new ContainerConfiguration(resourceConfiguration));
-        }
-
-        protected override LearnWebservicesBuilder Clone(IContainerConfiguration resourceConfiguration)
-        {
-            return Merge(DockerResourceConfiguration, new ContainerConfiguration(resourceConfiguration));
-        }
-
-        protected override LearnWebservicesBuilder Merge(ContainerConfiguration oldValue, ContainerConfiguration newValue)
-        {
-            return new LearnWebservicesBuilder(new ContainerConfiguration(oldValue, newValue));
-        }
-    }
-
-    private sealed class LearnWebservicesContainer(IContainerConfiguration configuration) : DockerContainer(configuration)
-    {
-        public Uri WebServiceUri => new($"http://localhost:{GetMappedPublicPort(8080)}/services/hello");
     }
 }
