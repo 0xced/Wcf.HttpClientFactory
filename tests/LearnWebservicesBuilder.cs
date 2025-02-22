@@ -1,15 +1,14 @@
 using Docker.DotNet.Models;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
-using Microsoft.Extensions.Logging;
 
 namespace Wcf.HttpClientFactory.Tests;
 
 public sealed class LearnWebservicesBuilder : ContainerBuilder<LearnWebservicesBuilder, LearnWebservicesContainer, ContainerConfiguration>
 {
-    public LearnWebservicesBuilder(ILogger logger) : this(new ContainerConfiguration())
+    public LearnWebservicesBuilder() : this(new ContainerConfiguration())
     {
-        DockerResourceConfiguration = Init().WithLogger(logger).DockerResourceConfiguration;
+        DockerResourceConfiguration = Init().DockerResourceConfiguration;
     }
 
     private LearnWebservicesBuilder(ContainerConfiguration configuration) : base(configuration)
