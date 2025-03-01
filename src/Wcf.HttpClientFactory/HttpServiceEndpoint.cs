@@ -1,11 +1,7 @@
 namespace Wcf.HttpClientFactory;
 
-internal sealed class HttpServiceEndpoint : ServiceEndpoint
+internal sealed class HttpServiceEndpoint(string httpClientName, ContractDescription contract, Binding binding, EndpointAddress address)
+    : ServiceEndpoint(contract, binding, address)
 {
-    public string HttpClientName { get; }
-
-    public HttpServiceEndpoint(string httpClientName, ContractDescription contract, Binding binding, EndpointAddress address) : base(contract, binding, address)
-    {
-        HttpClientName = httpClientName;
-    }
+    public string HttpClientName { get; } = httpClientName;
 }

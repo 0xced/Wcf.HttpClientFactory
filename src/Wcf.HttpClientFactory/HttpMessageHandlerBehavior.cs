@@ -1,15 +1,10 @@
 ﻿namespace Wcf.HttpClientFactory;
 
-internal class HttpMessageHandlerBehavior<TConfiguration> : IEndpointBehavior where TConfiguration : ContractConfiguration
+internal class HttpMessageHandlerBehavior<TConfiguration>(TConfiguration configuration, IHttpMessageHandlerFactory messageHandlerFactory) : IEndpointBehavior
+    where TConfiguration : ContractConfiguration
 {
-    private readonly TConfiguration _configuration;
-    private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory;
-
-    public HttpMessageHandlerBehavior(TConfiguration configuration, IHttpMessageHandlerFactory messageHandlerFactory)
-    {
-        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-        _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
-    }
+    private readonly TConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+    private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
 
     public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {
