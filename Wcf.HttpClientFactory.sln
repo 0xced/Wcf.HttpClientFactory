@@ -3,15 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5AE1F3F5-C38D-4653-9F17-DB711F7CCFF7}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.HttpClientFactory", "src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj", "{8C518706-BBAD-4F5A-956B-47C4832A7C98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.HttpClientFactory.Tests", "tests\Wcf.HttpClientFactory.Tests.csproj", "{E2B58FB1-F9B7-4220-A826-493211B2F7C6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E8598752-DB9C-4465-AB8D-9607D262015F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloService", "src\HelloService\HelloService.csproj", "{E9C60176-5456-42A9-ABDB-BC58CD21799D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.HttpClientFactory.Tests", "tests\Wcf.HttpClientFactory.Tests\Wcf.HttpClientFactory.Tests.csproj", "{E2B58FB1-F9B7-4220-A826-493211B2F7C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculatorService", "src\CalculatorService\CalculatorService.csproj", "{16BBDAEA-104B-4321-BE11-94531D202272}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloService", "tests\HelloService\HelloService.csproj", "{E9C60176-5456-42A9-ABDB-BC58CD21799D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "B2BService", "src\B2BService\B2BService.csproj", "{4BE923A8-42EA-4660-96BE-72727FFC3F82}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculatorService", "tests\CalculatorService\CalculatorService.csproj", "{16BBDAEA-104B-4321-BE11-94531D202272}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "B2BService", "tests\B2BService\B2BService.csproj", "{4BE923A8-42EA-4660-96BE-72727FFC3F82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,5 +46,12 @@ Global
 		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8C518706-BBAD-4F5A-956B-47C4832A7C98} = {5AE1F3F5-C38D-4653-9F17-DB711F7CCFF7}
+		{4BE923A8-42EA-4660-96BE-72727FFC3F82} = {E8598752-DB9C-4465-AB8D-9607D262015F}
+		{16BBDAEA-104B-4321-BE11-94531D202272} = {E8598752-DB9C-4465-AB8D-9607D262015F}
+		{E9C60176-5456-42A9-ABDB-BC58CD21799D} = {E8598752-DB9C-4465-AB8D-9607D262015F}
+		{E2B58FB1-F9B7-4220-A826-493211B2F7C6} = {E8598752-DB9C-4465-AB8D-9607D262015F}
 	EndGlobalSection
 EndGlobal

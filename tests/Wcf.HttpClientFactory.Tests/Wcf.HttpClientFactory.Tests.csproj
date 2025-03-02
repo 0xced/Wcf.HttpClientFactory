@@ -30,10 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\B2BService\B2BService.csproj" />
-    <ProjectReference Include="..\src\CalculatorService\CalculatorService.csproj" />
-    <ProjectReference Include="..\src\HelloService\HelloService.csproj" />
-    <ProjectReference Include="..\src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj" />
+    <ProjectReference Include="..\B2BService\B2BService.csproj" />
+    <ProjectReference Include="..\CalculatorService\CalculatorService.csproj" />
+    <ProjectReference Include="..\HelloService\HelloService.csproj" />
+    <ProjectReference Include="..\..\src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj" />
   </ItemGroup>
 
   <ItemGroup>
