@@ -36,4 +36,12 @@ public class LearnWebservicesFixture(IMessageSink messageSink) : ContainerFixtur
             await base.InitializeAsync();
         }
     }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        if (_useDocker)
+        {
+            await base.DisposeAsyncCore();
+        }
+    }
 }
