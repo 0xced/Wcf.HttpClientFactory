@@ -1,6 +1,7 @@
 ﻿namespace Wcf.HttpClientFactory;
 
-internal class HttpMessageHandlerBehavior<TConfiguration>(TConfiguration configuration, IHttpMessageHandlerFactory messageHandlerFactory) : IEndpointBehavior
+[SuppressMessage("Design", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated through dependency injection")]
+internal sealed class HttpMessageHandlerBehavior<TConfiguration>(TConfiguration configuration, IHttpMessageHandlerFactory messageHandlerFactory) : IEndpointBehavior
     where TConfiguration : ContractConfiguration
 {
     private readonly TConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));

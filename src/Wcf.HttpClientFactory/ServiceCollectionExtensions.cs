@@ -35,6 +35,8 @@ public static class ServiceCollectionExtensions
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         // This validates that TContract is a valid service contract
         var contractDescription = GetContractDescription<TContract>();
 
@@ -115,7 +117,7 @@ public static class ServiceCollectionExtensions
             var message = new StringBuilder($", try with AddContract<{exception.InterfaceType.Name}, {configurationName}>() instead");
             if (inheritsContractConfiguration)
             {
-                message.Append($" and make {configurationName} inherit from ContractConfiguration<{exception.InterfaceType.Name}>");
+                message.Append(CultureInfo.InvariantCulture, $" and make {configurationName} inherit from ContractConfiguration<{exception.InterfaceType.Name}>");
             }
             throw new ArgumentException(exception.Message + message, nameof(TContract));
         }

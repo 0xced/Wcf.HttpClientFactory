@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="8.0.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
+    <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" PrivateAssets="all" />
     <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.5.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.2" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.2" />
@@ -30,10 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\B2BService\B2BService.csproj" />
-    <ProjectReference Include="..\CalculatorService\CalculatorService.csproj" />
-    <ProjectReference Include="..\HelloService\HelloService.csproj" />
-    <ProjectReference Include="..\..\src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj" />
+    <ProjectReference Include="../B2BService/B2BService.csproj" />
+    <ProjectReference Include="../CalculatorService/CalculatorService.csproj" />
+    <ProjectReference Include="../HelloService/HelloService.csproj" />
+    <ProjectReference Include="../../src/Wcf.HttpClientFactory/Wcf.HttpClientFactory.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <VSTestLogger Include="GitHubActions" Visible="false" Condition="$(ContinuousIntegrationBuild) == 'true'" />
+    <VSTestLogger Include="GitHubActions%3Bsummary.includePassedTests=true%3Bsummary.includeSkippedTests=true" Visible="false" Condition="$(GITHUB_STEP_SUMMARY) != ''" />
     <VSTestLogger Include="trx%3BLogFileName=TestResults-$(TargetFramework).trx" Visible="false" Condition="$(ContinuousIntegrationBuild) == 'true'" />
     <VSTestLogger Include="html%3BLogFileName=TestResults-$(TargetFramework).html" Visible="false" />
   </ItemGroup>
@@ -57,24 +58,24 @@
 
   <Target Name="GenerateHtmlCoverageReport" AfterTargets="VSTest" Condition="$(TargetFramework) != ''">
     <ItemGroup>
-      <CoverletReport Include="$(VSTestResultsDirectory)/*/coverage.cobertura.xml" />
+      <CoverageReport Include="$(VSTestResultsDirectory)/*/coverage.cobertura.xml" />
     </ItemGroup>
-    <ReportGenerator ReportFiles="@(CoverletReport)" TargetDirectory="$(CoverageReportDirectory)" ReportTypes="Html;TextSummary" />
+    <ReportGenerator ReportFiles="@(CoverageReport)" TargetDirectory="$(CoverageReportDirectory)" ReportTypes="Html;TextSummary" />
   </Target>
 
   <!-- Because of https://github.com/microsoft/vstest/issues/2378 -->
-  <Target Name="MoveCoverletReport" AfterTargets="GenerateHtmlCoverageReport" Condition="$(TargetFramework) != ''">
-    <Move SourceFiles="@(CoverletReport)" DestinationFolder="$(CoverageReportDirectory)" />
+  <Target Name="MoveCoverageReport" AfterTargets="GenerateHtmlCoverageReport" Condition="$(TargetFramework) != ''">
+    <Move SourceFiles="@(CoverageReport)" DestinationFolder="$(CoverageReportDirectory)" />
     <PropertyGroup>
-      <CoverletReport>@(CoverletReport)</CoverletReport>
+      <CoverageReport>@(CoverageReport)</CoverageReport>
     </PropertyGroup>
     <ItemGroup>
-      <CoverletReportParentDirectory Include="$([System.IO.Path]::Combine($(CoverletReport),'..'))" Condition="$(CoverletReport) != ''" />
+      <CoverageReportParentDirectory Include="$([System.IO.Path]::Combine($(CoverageReport),'..'))" Condition="$(CoverageReport) != ''" />
     </ItemGroup>
-    <RemoveDir Directories="@(CoverletReportParentDirectory)" />
+    <RemoveDir Directories="@(CoverageReportParentDirectory)" />
   </Target>
 
-  <Target Name="DisplayCoverageSummary" AfterTargets="MoveCoverletReport" Condition="$(TargetFramework) != ''">
+  <Target Name="DisplayCoverageSummary" AfterTargets="MoveCoverageReport" Condition="$(TargetFramework) != ''">
     <PropertyGroup>
       <CatCommand Condition="!$([MSBuild]::IsOSPlatform('Windows'))">cat</CatCommand>
       <CatCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">type</CatCommand>
@@ -82,7 +83,7 @@
     <Exec WorkingDirectory="$(CoverageReportDirectory)" Command="$(CatCommand) Summary.txt" />
   </Target>
 
-  <Target Name="OpenHtmlCoverageReport" AfterTargets="MoveCoverletReport" Condition="$(TargetFramework) != '' AND $(ContinuousIntegrationBuild) != 'true'">
+  <Target Name="OpenHtmlCoverageReport" AfterTargets="MoveCoverageReport" Condition="$(TargetFramework) != '' AND $(ContinuousIntegrationBuild) != 'true'">
     <PropertyGroup>
       <OpenCommand Condition="$([MSBuild]::IsOSPlatform('Linux'))">xdg-open</OpenCommand>
       <OpenCommand Condition="$([MSBuild]::IsOSPlatform('OSX'))">open</OpenCommand>

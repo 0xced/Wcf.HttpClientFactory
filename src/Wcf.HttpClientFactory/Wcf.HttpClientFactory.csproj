@@ -2,14 +2,22 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
-  <ItemGroup>
+  <PropertyGroup Label="Compiling">
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AnalysisMode>All</AnalysisMode>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CA1200</NoWarn> <!-- Because of TypeNameFormatter.cs(411,48): Error CA1200 : Avoid using cref tags with a prefix (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1200) -->
+  </PropertyGroup>
+
+  <ItemGroup Label="Compiling">
+    <AssemblyAttribute Include="CLSCompliantAttribute">
+      <_Parameter1>true</_Parameter1>
+    </AssemblyAttribute>
     <Using Include="System.Diagnostics.CodeAnalysis" />
+    <Using Include="System.Globalization" />
     <Using Include="System.Reflection" />
     <Using Include="System.ServiceModel" />
     <Using Include="System.ServiceModel.Channels" />
@@ -21,10 +29,61 @@
     <Using Include="TypeNameFormatter" />
   </ItemGroup>
 
+  <PropertyGroup Label="Packaging">
+    <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Run `dotnet pack -p:GenerateCompatibilitySuppressionFile=true` to accept breaking changes
+       See https://docs.microsoft.com/en-us/dotnet/fundamentals/package-validation/overview for more information -->
+  <PropertyGroup Label="API Validation">
+    <EnablePackageValidation>false</EnablePackageValidation>
+    <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Packaging Metadata">
+    <Authors>Cédric Luthi</Authors>
+    <Copyright>Copyright © Cédric Luthi</Copyright>
+    <Description>Dependency Injection for WCF contracts</Description>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>WCF HTTP DI</PackageTags>
+    <PackageProjectUrl>https://github.com/0xced/Wcf.HttpClientFactory</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/0xced/Wcf.HttpClientFactory/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup Label="Packaging Metadata">
+    <None Include="../../resources/icon.png" Pack="true" PackagePath="" Visible="false" />
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <PropertyGroup Label="Versioning">
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Restoring">
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- https://devblogs.microsoft.com/nuget/enable-repeatable-package-restores-using-a-lock-file/#how-does-nuget-use-the-lock-file -->
+    <RestoreLockedMode Condition="$(ContinuousIntegrationBuild) == 'true'">true</RestoreLockedMode>
+  </PropertyGroup>
+
+  <ItemGroup Label="Restoring">
+    <None Update="packages.lock.json" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.0" />
     <PackageReference Include="TypeNameFormatter.Sources" Version="1.1.1" PrivateAssets="all" />
   </ItemGroup>
+
+  <Target Name="ValidateNuGetPackage" AfterTargets="Pack">
+    <Exec Command="dotnet tool restore" />
+    <Exec Command="dotnet validate package local $([MSBuild]::EnsureTrailingSlash($(PackageOutputPath)))$(PackageId).$(PackageVersion).nupkg" />
+  </Target>
 
 </Project>

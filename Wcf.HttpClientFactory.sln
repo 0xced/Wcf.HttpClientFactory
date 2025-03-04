@@ -3,6 +3,26 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Meta", "Meta", "{7ED60A38-1B18-49E0-8183-419576EB80E2}"
+ProjectSection(SolutionItems) = preProject
+	global.json = global.json
+	NuGet.config = NuGet.config
+	.config\dotnet-tools.json = .config\dotnet-tools.json
+	.github\workflows\continuous-integration.yml = .github\workflows\continuous-integration.yml
+	src\Wcf.HttpClientFactory\packages.lock.json = src\Wcf.HttpClientFactory\packages.lock.json
+	.github\dependabot.yml = .github\dependabot.yml
+	MAINTENANCE.md = MAINTENANCE.md
+	CHANGELOG.md = CHANGELOG.md
+	CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+	LICENSE = LICENSE
+EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{2B16146C-F1EF-41C4-A7E8-1CD5D266166A}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\continuous-integration.yml = .github\workflows\continuous-integration.yml
+		.github\workflows\test-report.yml = .github\workflows\test-report.yml
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5AE1F3F5-C38D-4653-9F17-DB711F7CCFF7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wcf.HttpClientFactory", "src\Wcf.HttpClientFactory\Wcf.HttpClientFactory.csproj", "{8C518706-BBAD-4F5A-956B-47C4832A7C98}"
@@ -21,9 +41,6 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8C518706-BBAD-4F5A-956B-47C4832A7C98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -48,6 +65,7 @@ Global
 		{4BE923A8-42EA-4660-96BE-72727FFC3F82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{2B16146C-F1EF-41C4-A7E8-1CD5D266166A} = {7ED60A38-1B18-49E0-8183-419576EB80E2}
 		{8C518706-BBAD-4F5A-956B-47C4832A7C98} = {5AE1F3F5-C38D-4653-9F17-DB711F7CCFF7}
 		{4BE923A8-42EA-4660-96BE-72727FFC3F82} = {E8598752-DB9C-4465-AB8D-9607D262015F}
 		{16BBDAEA-104B-4321-BE11-94531D202272} = {E8598752-DB9C-4465-AB8D-9607D262015F}
