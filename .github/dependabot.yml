@@ -6,3 +6,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: "Microsoft.Extensions.Http"
+      - dependency-name: "System.ServiceModel.Primitives"
