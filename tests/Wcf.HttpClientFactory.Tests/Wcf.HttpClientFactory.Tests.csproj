@@ -48,10 +48,10 @@
   </ItemGroup>
 
   <PropertyGroup Label="Coverage">
-    <RootDirectory>$([System.IO.Directory]::GetParent($(MSBuildProjectDirectory)))</RootDirectory>
-    <CoverageReportDirectory>$([System.IO.Path]::Combine($(RootDirectory),'coverage',$(TargetFramework)))</CoverageReportDirectory>
+    <RootDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)','..','..'))</RootDirectory>
+    <CoverageReportDirectory>$([MSBuild]::NormalizeDirectory($(RootDirectory),'coverage',$(TargetFramework)))</CoverageReportDirectory>
     <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) == 'true'">$(RootDirectory)</VSTestResultsDirectory>
-    <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) != 'true'">$([System.IO.Path]::Combine($(CoverageReportDirectory),'results'))</VSTestResultsDirectory>
+    <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) != 'true'">$([MSBuild]::NormalizeDirectory($(CoverageReportDirectory),'results'))</VSTestResultsDirectory>
     <VSTestCollect>XPlat Code Coverage</VSTestCollect>
     <VSTestLogger>@(VSTestLogger)</VSTestLogger>
   </PropertyGroup>
@@ -70,7 +70,7 @@
       <CoverageReport>@(CoverageReport)</CoverageReport>
     </PropertyGroup>
     <ItemGroup>
-      <CoverageReportParentDirectory Include="$([System.IO.Path]::Combine($(CoverageReport),'..'))" Condition="$(CoverageReport) != ''" />
+      <CoverageReportParentDirectory Include="$([MSBuild]::NormalizeDirectory($(CoverageReport),'..'))" Condition="$(CoverageReport) != ''" />
     </ItemGroup>
     <RemoveDir Directories="@(CoverageReportParentDirectory)" />
   </Target>
