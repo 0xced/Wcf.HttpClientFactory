@@ -8,7 +8,7 @@ Since using `IHttpClientFactory` is tightly coupled to Microsoft's [dependency i
 
 This guide uses [Learn Web Services](https://www.learnwebservices.com), a free, public SOAP web service example.
 
-The first step is to generate a C# SOAP client to access the *Hello* web service.
+The first step is to generate a C# SOAP client to access the *Hello* web service.
 
 1. Install the `dotnet-svcutil` tool globally
 
