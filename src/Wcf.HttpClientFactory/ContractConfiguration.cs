@@ -164,6 +164,7 @@ public class ContractConfiguration<TContract> : ContractConfiguration
         return client;
     }
 
+    [ExcludeFromCodeCoverage(Justification = "Can't happen with contracts generated with the dotnet-svcutil tool")]
     private static MissingMethodException MissingMethodException(string missingMethodName)
     {
         var message = $"The method {ClientType.FullName}.{missingMethodName} was not found. " +

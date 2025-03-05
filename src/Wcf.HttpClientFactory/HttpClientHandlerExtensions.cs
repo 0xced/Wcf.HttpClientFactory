@@ -5,6 +5,7 @@ internal static class HttpClientHandlerExtensions
     private static Func<object?, object?>? _getUnderlyingHandler;
     private static Func<object?, object?> GetUnderlyingHandler
     {
+        [ExcludeFromCodeCoverage(Justification = "Defensive against potential future change in the .NET runtime but currently unreachable")]
         get
         {
             const string underlyingHandlerFieldName = "_underlyingHandler";
