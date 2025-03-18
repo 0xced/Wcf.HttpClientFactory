@@ -18,7 +18,7 @@ namespace Wcf.HttpClientFactory
     }
     public static class ServiceCollectionExtensions
     {
-        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder AddContract<TContract, TConfiguration>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string? httpClientName = null, Microsoft.Extensions.DependencyInjection.ServiceLifetime lifetime = 2, bool registerChannelFactory = true)
+        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder AddContract<TContract, TConfiguration>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string? httpClientName = null, Microsoft.Extensions.DependencyInjection.ServiceLifetime contractLifetime = 2, Microsoft.Extensions.DependencyInjection.ServiceLifetime? factoryLifetime = 0)
             where TContract :  class
             where TConfiguration : Wcf.HttpClientFactory.ContractConfiguration<TContract> { }
     }

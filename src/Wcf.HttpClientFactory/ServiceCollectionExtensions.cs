@@ -13,14 +13,16 @@ public static class ServiceCollectionExtensions
     /// The logical name of the <see cref="HttpClient"/> to configure.
     /// Pass <see langword="null"/> or an empty string to use the default name from the contract.
     /// </param>
-    /// <param name="lifetime">The <see cref="ServiceLifetime"/> of the registered contract.</param>
-    /// <param name="registerChannelFactory">
-    /// Either <see langword="true"/> to register a singleton <see cref="ChannelFactory{TContract}"/> for creating the <typeparamref name="TContract"/> instances
-    /// or <see langword="false"/> to use <see cref="ClientBase{TContract}"/> for creating the <typeparamref name="TContract"/> instances.
+    /// <param name="contractLifetime">The <see cref="ServiceLifetime"/> of the registered contract. Defaults to <see cref="ServiceLifetime.Transient"/>.</param>
+    /// <param name="factoryLifetime">
+    /// The <see cref="ServiceLifetime"/> of the <see cref="ChannelFactory{TContract}"/> used for creating the <typeparamref name="TContract"/> instances.
+    /// Pass <see langword="null"/> to use a <see cref="ClientBase{TContract}"/> instead of a <see cref="ChannelFactory{TContract}"/>. Passing <see langword="null"/> is discouraged.
+    /// Defaults to <see cref="ServiceLifetime.Singleton"/>.
     /// </param>
     /// <typeparam name="TContract">The type of the service contract to register. This type must be decorated with the <see cref="ServiceContractAttribute"/>.</typeparam>
     /// <typeparam name="TConfiguration">
     /// The type of the contract's configuration which provides the <see cref="Binding"/>, the <see cref="EndpointAddress"/> and enables configuration of the credentials.
+    /// Registered as a singleton.
     /// </typeparam>
     /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the HTTP client.</returns>
     /// <exception cref="ArgumentException">The <typeparamref name="TContract"/> has already been registered.</exception>
@@ -30,8 +32,8 @@ public static class ServiceCollectionExtensions
     public static IHttpClientBuilder AddContract<TContract, TConfiguration>(
         this IServiceCollection services,
         string? httpClientName = null,
-        ServiceLifetime lifetime = ServiceLifetime.Transient,
-        bool registerChannelFactory = true)
+        ServiceLifetime contractLifetime = ServiceLifetime.Transient,
+        ServiceLifetime? factoryLifetime = ServiceLifetime.Singleton)
         where TContract : class
         where TConfiguration : ContractConfiguration<TContract>
     {
@@ -40,7 +42,7 @@ public static class ServiceCollectionExtensions
         // This validates that TContract is a valid service contract
         var contractDescription = GetContractDescription<TContract>();
 
-        EnsureValidCacheSetting<TContract, TConfiguration>(lifetime, registerChannelFactory);
+        EnsureValidCacheSetting<TContract, TConfiguration>(contractLifetime, factoryLifetime);
 
         var contractType = typeof(TContract);
         var descriptor = services.FirstOrDefault(e => e.ServiceType == contractType);
@@ -55,23 +57,23 @@ public static class ServiceCollectionExtensions
 
         var clientName = string.IsNullOrEmpty(httpClientName) ? contractDescription.Name : httpClientName;
 
-        if (registerChannelFactory)
+        if (factoryLifetime.HasValue)
         {
-            services.AddSingleton<ChannelFactory<TContract>>(sp => CreateChannelFactory<TContract, TConfiguration>(sp, clientName));
-            services.Add<TContract>(sp => sp.GetRequiredService<ChannelFactory<TContract>>().CreateChannel(), lifetime);
+            services.Add<ChannelFactory<TContract>>(sp => CreateChannelFactory<TContract, TConfiguration>(sp, clientName), factoryLifetime.Value);
+            services.Add<TContract>(sp => sp.GetRequiredService<ChannelFactory<TContract>>().CreateChannel(), contractLifetime);
         }
         else
         {
-            services.Add<TContract>(sp => CreateClient<TContract, TConfiguration>(sp, clientName), lifetime);
+            services.Add<TContract>(sp => CreateClient<TContract, TConfiguration>(sp, clientName), contractLifetime);
         }
 
         return services.AddHttpClient(clientName);
     }
 
-    private static void EnsureValidCacheSetting<TContract, TConfiguration>(ServiceLifetime lifetime, bool registerChannelFactory)
+    private static void EnsureValidCacheSetting<TContract, TConfiguration>(ServiceLifetime contractLifetime, ServiceLifetime? factoryLifetime)
         where TContract : class
     {
-        if (lifetime == ServiceLifetime.Singleton || registerChannelFactory)
+        if (contractLifetime == ServiceLifetime.Singleton || factoryLifetime.HasValue)
             return;
 
         var clientType = GetClientType<TContract, TConfiguration>();
@@ -83,8 +85,8 @@ public static class ServiceCollectionExtensions
             return;
 
         var message = $"""
-                      When the "{nameof(registerChannelFactory)}" argument is false, the "{lifetime}" lifetime can only be used if "{clientType.Name}" cache setting is always on.
-                      Either change the "{nameof(lifetime)}" to "{nameof(ServiceLifetime.Singleton)}" or, preferably, set the cache setting to always on the client with the following code:
+                      When the "{nameof(factoryLifetime)}" argument is null, the "{contractLifetime}" contract lifetime can only be used if "{clientType.Name}" cache setting is always on.
+                      Either change the "{nameof(contractLifetime)}" to "{nameof(ServiceLifetime.Singleton)}" or, preferably, set the cache setting to always on the client with the following code:
 
                       {clientType.Name}.{cacheSettingName} = {nameof(CacheSetting)}.{nameof(CacheSetting.AlwaysOn)};
 

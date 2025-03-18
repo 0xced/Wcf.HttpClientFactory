@@ -25,7 +25,7 @@ public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutpu
 
     [Theory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime lifetime, bool registerChannelFactory, bool useDefaultUrl, bool configureMessageHandler)
+    public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime? factoryLifetime, bool useDefaultUrl, bool configureMessageHandler)
     {
         Assert.SkipWhen(useDefaultUrl && !fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
 
@@ -39,7 +39,7 @@ public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutpu
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         services.AddOptions<HelloOptions>().BindConfiguration("HelloService");
         var interceptor = new InterceptingHandler();
-        services.AddContract<HelloEndpoint, HelloConfiguration>("Hello", lifetime, registerChannelFactory).AddHttpMessageHandler(_ => interceptor);
+        services.AddContract<HelloEndpoint, HelloConfiguration>("Hello", contractLifetime, factoryLifetime).AddHttpMessageHandler(_ => interceptor);
         await using var serviceProvider = services.BuildServiceProvider();
 
         for (var i = 1; i <= 2; i++)

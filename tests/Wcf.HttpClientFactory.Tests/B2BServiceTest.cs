@@ -18,13 +18,13 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 {
     [Theory]
     [CombinatorialData]
-    public async Task TestB2BServiceSuccess(bool registerChannelFactory)
+    public async Task TestB2BServiceSuccess(ServiceLifetime? factoryLifetime)
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddEnvironmentVariables().Build());
         services.AddOptions<B2BServiceOptions>().BindConfiguration("B2BService");
-        services.AddContract<B2BService, B2BServiceConfiguration>(registerChannelFactory: registerChannelFactory);
+        services.AddContract<B2BService, B2BServiceConfiguration>(factoryLifetime: factoryLifetime);
 
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
@@ -44,7 +44,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 
     [Theory]
     [CombinatorialData]
-    public async Task TestB2BServiceError(bool asyncScope, bool registerChannelFactory)
+    public async Task TestB2BServiceError(bool asyncScope, ServiceLifetime? factoryLifetime)
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(outputHelper));
@@ -55,7 +55,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
         };
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
         services.AddOptions<B2BServiceOptions>().BindConfiguration("B2BService");
-        services.AddContract<B2BService, B2BServiceConfiguration>(registerChannelFactory: registerChannelFactory);
+        services.AddContract<B2BService, B2BServiceConfiguration>(factoryLifetime: factoryLifetime);
 
         await using var serviceProvider = services.BuildServiceProvider();
         var scope = serviceProvider.CreateAsyncScope();

@@ -34,7 +34,7 @@ public class ServiceCollectionExtensionsTest
     public void AddContract_ContractTypeImplementation_Throws()
     {
         var services = new ServiceCollection();
-        var action = () => services.AddContract<CalculatorSoapClient, ContractConfiguration<CalculatorSoapClient>>(registerChannelFactory: false);
+        var action = () => services.AddContract<CalculatorSoapClient, ContractConfiguration<CalculatorSoapClient>>(factoryLifetime: null);
 
         action.Should().Throw<ArgumentException>()
             .WithParameterName("TContract")
@@ -45,7 +45,7 @@ public class ServiceCollectionExtensionsTest
     public void AddContract_ContractTypeImplementationWithInheritedConfiguration_Throws()
     {
         var services = new ServiceCollection();
-        var action = () => services.AddContract<CalculatorSoapClient, CalculatorConfiguration>(registerChannelFactory: false);
+        var action = () => services.AddContract<CalculatorSoapClient, CalculatorConfiguration>(factoryLifetime: null);
 
         action.Should().Throw<ArgumentException>()
             .WithParameterName("TContract")
