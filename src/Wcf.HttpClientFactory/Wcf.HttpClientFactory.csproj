@@ -9,7 +9,9 @@
     <Nullable>enable</Nullable>
     <AnalysisMode>All</AnalysisMode>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>$(NoWarn);CA1200</NoWarn> <!-- Because of TypeNameFormatter.cs(411,48): Error CA1200 : Avoid using cref tags with a prefix (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1200) -->
+    <!-- Because of TypeNameFormatter.cs(411,48): Error CA1200 : Avoid using cref tags with a prefix (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1200)
+         Will be fixed by https://github.com/stakx/TypeNameFormatter/pull/52 -->
+    <NoWarn>$(NoWarn);CA1200</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Label="Compiling">
