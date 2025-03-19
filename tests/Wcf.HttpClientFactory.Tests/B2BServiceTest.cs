@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Security;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 {
     [Theory]
     [CombinatorialData]
-    public async Task TestB2BServiceSuccess(ServiceLifetime? factoryLifetime)
+    public async Task TestB2BServiceSuccess(ServiceLifetime factoryLifetime)
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(outputHelper));
@@ -44,7 +45,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 
     [Theory]
     [CombinatorialData]
-    public async Task TestB2BServiceError(bool asyncScope, ServiceLifetime? factoryLifetime)
+    public async Task TestB2BServiceError(bool asyncScope, ServiceLifetime factoryLifetime)
     {
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(outputHelper));
@@ -94,10 +95,12 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Local", Justification = "It's instantiated through the dependency injection container")]
     private class B2BServiceConfiguration(IOptions<B2BServiceOptions> options) : ContractConfiguration<B2BService>
     {
+        protected override Binding GetBinding() => B2BServiceClient.DefaultBinding;
+
         protected override EndpointAddress GetEndpointAddress()
         {
             var url = options.Value.Url;
-            return url == null ? base.GetEndpointAddress() : new EndpointAddress(url);
+            return url != null ? new EndpointAddress(url) : B2BServiceClient.DefaultEndpointAddress;
         }
 
         protected override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)

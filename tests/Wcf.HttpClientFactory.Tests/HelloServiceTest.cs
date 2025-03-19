@@ -25,15 +25,20 @@ public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutpu
 
     [Theory]
     [CombinatorialData]
-    public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime? factoryLifetime, bool useDefaultUrl, bool configureMessageHandler)
+    public async Task TestSayHello(ServiceLifetime contractLifetime, ServiceLifetime factoryLifetime, bool useDefaultUrl, bool configureMessageHandler)
     {
         Assert.SkipWhen(useDefaultUrl && !fixture.IsServiceAvailable, "Can't use the default URL when the service is not available");
 
         var configuration = new Dictionary<string, string?>
         {
-            [$"HelloService:{nameof(HelloOptions.Url)}"] = useDefaultUrl ? null : fixture.WebServiceUri.AbsoluteUri,
             [$"HelloService:{nameof(HelloOptions.ConfigureMessageHandler)}"] = configureMessageHandler.ToString(),
         };
+
+        if (!useDefaultUrl)
+        {
+            configuration[$"HelloService:{nameof(HelloOptions.Url)}"] = fixture.WebServiceUri.AbsoluteUri;
+        }
+
         var services = new ServiceCollection();
         services.AddLogging(c => c.AddXUnit(outputHelper));
         services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(configuration).Build());
@@ -63,7 +68,7 @@ public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutpu
     private class HelloOptions
     {
         public bool ConfigureMessageHandler { get; init; }
-        public Uri? Url { get; init; } = null;
+        public Uri Url { get; init; } = new("https://apps.learnwebservices.com/services/hello");
         public string UserName { get; init; } = "AzureDiamond";
         public string Password { get; init; } = "hunter2";
     }
@@ -73,15 +78,13 @@ public sealed class HelloServiceTest(LearnWebservicesFixture fixture, ITestOutpu
     {
         protected override Binding GetBinding()
         {
-            var url = options.Value.Url;
-            var mode = url?.Scheme == "http" ? BasicHttpSecurityMode.None : BasicHttpSecurityMode.Transport;
+            var mode = options.Value.Url.Scheme == "http" ? BasicHttpSecurityMode.None : BasicHttpSecurityMode.Transport;
             return new BasicHttpBinding { AllowCookies = true, Security = { Mode = mode } };
         }
 
         protected override EndpointAddress GetEndpointAddress()
         {
-            var url = options.Value.Url;
-            return url == null ? base.GetEndpointAddress() : new EndpointAddress(url);
+            return new EndpointAddress(options.Value.Url);
         }
 
         protected override void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)

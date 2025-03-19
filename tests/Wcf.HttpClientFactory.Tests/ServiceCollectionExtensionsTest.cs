@@ -1,4 +1,6 @@
 using System;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceReference;
@@ -19,38 +21,47 @@ public class ServiceCollectionExtensionsTest
     }
 
     [Fact]
+    public void AddContract_ConcreteContractType_Throws()
+    {
+        var services = new ServiceCollection();
+        var action = () => services.AddContract<HelloEndpointClient, HelloClientConfiguration>();
 
+        action.Should().Throw<ArgumentException>()
+            .WithParameterName("TContract")
+            .WithMessage("The contract type (HelloEndpointClient) must be an interface type. (Parameter 'TContract')");
+    }
+
+    [Fact]
     public void AddContract_CallTwice_Throws()
     {
         var services = new ServiceCollection();
-        services.AddContract<HelloEndpoint, ContractConfiguration<HelloEndpoint>>();
-        var action = () => services.AddContract<HelloEndpoint, ContractConfiguration<HelloEndpoint>>();
+        services.AddContract<HelloEndpoint, HelloConfiguration>();
+        var action = () => services.AddContract<HelloEndpoint, HelloConfiguration>();
         action.Should().ThrowExactly<ArgumentException>()
             .WithParameterName("TContract")
-            .WithMessage("The AddContract<HelloEndpoint, ContractConfiguration<HelloEndpoint>>() method must be called only once and it was already called (with a Transient lifetime) (Parameter 'TContract')");
+            .WithMessage("The AddContract<HelloEndpoint, HelloConfiguration>() method must be called only once and it was already called (with a transient lifetime). (Parameter 'TContract')");
     }
 
     [Fact]
-    public void AddContract_ContractTypeImplementation_Throws()
+    public void AddContract_InvalidContractConfiguration_Throws()
     {
         var services = new ServiceCollection();
-        var action = () => services.AddContract<CalculatorSoapClient, ContractConfiguration<CalculatorSoapClient>>(factoryLifetime: null);
+        var action = () => services.AddContract<CalculatorSoap, ContractConfiguration<CalculatorSoap>>();
 
         action.Should().Throw<ArgumentException>()
-            .WithParameterName("TContract")
-            .WithMessage("No ClientBase<ServiceReference.CalculatorSoapClient> were found in the CalculatorService assembly, try with AddContract<CalculatorSoap, ContractConfiguration<CalculatorSoap>>() instead (Parameter 'TContract')");
-    }
-
-    [Fact]
-    public void AddContract_ContractTypeImplementationWithInheritedConfiguration_Throws()
-    {
-        var services = new ServiceCollection();
-        var action = () => services.AddContract<CalculatorSoapClient, CalculatorConfiguration>(factoryLifetime: null);
-
-        action.Should().Throw<ArgumentException>()
-            .WithParameterName("TContract")
-            .WithMessage("No ClientBase<ServiceReference.CalculatorSoapClient> were found in the CalculatorService assembly, try with AddContract<CalculatorSoap, CalculatorConfiguration>() instead and make CalculatorConfiguration inherit from ContractConfiguration<CalculatorSoap> (Parameter 'TContract')");
+            .WithParameterName("TConfiguration")
+            .WithMessage("The configuration class (ContractConfiguration<CalculatorSoap>) is abstract, it must be subclassed. (Parameter 'TConfiguration')");
     }
 }
 
-internal class CalculatorConfiguration : ContractConfiguration<CalculatorSoapClient>;
+public class HelloConfiguration : ContractConfiguration<HelloEndpoint>
+{
+    protected override Binding GetBinding() => throw new NotSupportedException("Should not be called");
+    protected override EndpointAddress GetEndpointAddress() => throw new NotSupportedException("Should not be called");
+}
+
+public class HelloClientConfiguration : ContractConfiguration<HelloEndpointClient>
+{
+    protected override Binding GetBinding() => throw new NotSupportedException("Should not be called");
+    protected override EndpointAddress GetEndpointAddress() => throw new NotSupportedException("Should not be called");
+}

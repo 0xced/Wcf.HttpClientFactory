@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
 
 [assembly: ExcludeFromCodeCoverage]
 
@@ -8,8 +10,7 @@ namespace ServiceReference;
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global", Justification = "It is instantiated by the dependency injection container")]
 public partial class CalculatorSoapClient
 {
-    [SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "It is used through reflection")]
-    public CalculatorSoapClient(System.ServiceModel.Description.ServiceEndpoint endpoint) : base(endpoint)
-    {
-    }
+    public static Binding DefaultBinding => GetBindingForEndpoint(EndpointConfiguration.CalculatorSoap);
+
+    public static EndpointAddress DefaultEndpointAddress => GetEndpointAddress(EndpointConfiguration.CalculatorSoap);
 }

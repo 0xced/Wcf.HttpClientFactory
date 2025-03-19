@@ -1,4 +1,5 @@
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,10 +12,10 @@ public class CalculatorServiceTest
 {
     [Theory]
     [CombinatorialData]
-    public async Task TestCalculatorSuccess(ServiceLifetime contractLifetime, ServiceLifetime? factoryLifetime)
+    public async Task TestCalculatorSuccess(ServiceLifetime contractLifetime, ServiceLifetime factoryLifetime)
     {
         var services = new ServiceCollection();
-        services.AddContract<CalculatorSoap, ContractConfiguration<CalculatorSoap>>("Calculator", contractLifetime, factoryLifetime);
+        services.AddContract<CalculatorSoap, CalculatorConfiguration>("Calculator", contractLifetime, factoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 
@@ -28,10 +29,10 @@ public class CalculatorServiceTest
 
     [Theory]
     [CombinatorialData]
-    public async Task TestCalculatorError(ServiceLifetime contractLifetime, ServiceLifetime? factoryLifetime)
+    public async Task TestCalculatorError(ServiceLifetime contractLifetime, ServiceLifetime factoryLifetime)
     {
         var services = new ServiceCollection();
-        services.AddContract<CalculatorSoap, ContractConfiguration<CalculatorSoap>>("Calculator", contractLifetime, factoryLifetime);
+        services.AddContract<CalculatorSoap, CalculatorConfiguration>("Calculator", contractLifetime, factoryLifetime);
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 
@@ -39,5 +40,12 @@ public class CalculatorServiceTest
 
         var action = () => service.DivideAsync(0, 0);
         await action.Should().ThrowExactlyAsync<FaultException>().WithMessage("*overflow*");
+    }
+
+    private class CalculatorConfiguration : ContractConfiguration<CalculatorSoap>
+    {
+        protected override Binding GetBinding() => CalculatorSoapClient.DefaultBinding;
+
+        protected override EndpointAddress GetEndpointAddress() => CalculatorSoapClient.DefaultEndpointAddress;
     }
 }

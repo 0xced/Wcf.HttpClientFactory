@@ -8,17 +8,17 @@ namespace Wcf.HttpClientFactory
         protected ContractConfiguration() { }
         protected virtual bool ConfigureSocketsHttpHandler(System.Net.Http.SocketsHttpHandler socketsHttpHandler) { }
     }
-    public class ContractConfiguration<TContract> : Wcf.HttpClientFactory.ContractConfiguration
+    public abstract class ContractConfiguration<TContract> : Wcf.HttpClientFactory.ContractConfiguration
         where TContract :  class
     {
-        public ContractConfiguration() { }
+        protected ContractConfiguration() { }
         protected virtual void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Description.ClientCredentials clientCredentials) { }
-        protected virtual System.ServiceModel.Channels.Binding GetBinding() { }
-        protected virtual System.ServiceModel.EndpointAddress GetEndpointAddress() { }
+        protected abstract System.ServiceModel.Channels.Binding GetBinding();
+        protected abstract System.ServiceModel.EndpointAddress GetEndpointAddress();
     }
     public static class ServiceCollectionExtensions
     {
-        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder AddContract<TContract, TConfiguration>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string? httpClientName = null, Microsoft.Extensions.DependencyInjection.ServiceLifetime contractLifetime = 2, Microsoft.Extensions.DependencyInjection.ServiceLifetime? factoryLifetime = 0)
+        public static Microsoft.Extensions.DependencyInjection.IHttpClientBuilder AddContract<TContract, TConfiguration>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string? httpClientName = null, Microsoft.Extensions.DependencyInjection.ServiceLifetime contractLifetime = 2, Microsoft.Extensions.DependencyInjection.ServiceLifetime factoryLifetime = 0)
             where TContract :  class
             where TConfiguration : Wcf.HttpClientFactory.ContractConfiguration<TContract> { }
     }
