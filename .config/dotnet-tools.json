@@ -17,7 +17,7 @@
       "rollForward": true
     },
     "dotnet-svcutil": {
-      "version": "2.1.0",
+      "version": "8.0.0",
       "commands": [
         "dotnet-svcutil"
       ],
