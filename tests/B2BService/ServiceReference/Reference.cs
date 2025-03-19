@@ -13,7 +13,7 @@ namespace ServiceReference
     
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="InvoiceReport", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class InvoiceReport : object
     {
@@ -80,7 +80,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="DownloadFile", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class DownloadFile : object
     {
@@ -117,7 +117,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ProtocolReport", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class ProtocolReport : object
     {
@@ -154,7 +154,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="Invoice", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class Invoice : object
     {
@@ -206,7 +206,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="ProcessedInvoice", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class ProcessedInvoice : object
     {
@@ -273,7 +273,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="SearchInvoiceParameter", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class SearchInvoiceParameter : object
     {
@@ -429,7 +429,7 @@ namespace ServiceReference
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="State", Namespace="http://schemas.datacontract.org/2004/07/eBill.B2BServiceLib.Logic")]
     public enum State : int
     {
@@ -453,14 +453,38 @@ namespace ServiceReference
         Invalid = 7,
         
         [System.Runtime.Serialization.EnumMemberAttribute()]
+        Reported = 8,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
         Deleted = 9,
         
         [System.Runtime.Serialization.EnumMemberAttribute()]
         Unsigned = 50,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        Approved = 60,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        Delivered = 61,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        Postaldispatched = 63,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        Printing = 64,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        Return = 65,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        Notdelivered = 66,
+        
+        [System.Runtime.Serialization.EnumMemberAttribute()]
+        Delayed = 67,
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="SearchInvoicesResponse", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class SearchInvoicesResponse : object
     {
@@ -512,7 +536,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="SearchInvoice", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class SearchInvoice : object
     {
@@ -684,7 +708,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EBillRecipientSubscriptionStatus", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class EBillRecipientSubscriptionStatus : object
     {
@@ -751,7 +775,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EBillRecipientSubscriptionStatusBulk", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class EBillRecipientSubscriptionStatusBulk : object
     {
@@ -788,7 +812,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="BillRecipient", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class BillRecipient : object
     {
@@ -854,7 +878,7 @@ namespace ServiceReference
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="SubmissionStatus", Namespace="http://schemas.datacontract.org/2004/07/eBill.B2BServiceLib.Logic")]
     public enum SubmissionStatus : int
     {
@@ -867,7 +891,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EBillRecipientSubscriptionInitiation", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class EBillRecipientSubscriptionInitiation : object
     {
@@ -904,7 +928,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EBillRecipientSubscriptionConfirmation", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class EBillRecipientSubscriptionConfirmation : object
     {
@@ -1016,7 +1040,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="Party", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class Party : object
     {
@@ -1037,7 +1061,7 @@ namespace ServiceReference
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="EPartyType", Namespace="http://schemas.datacontract.org/2004/07/eBill.B2BServiceLib.Logic")]
     public enum EPartyType : int
     {
@@ -1050,7 +1074,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="Address", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class Address : object
     {
@@ -1162,7 +1186,7 @@ namespace ServiceReference
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.Runtime.Serialization.DataContractAttribute(Name="BillerReport", Namespace="http://swisspost_ch.ebs.ebill.b2bservice")]
     public partial class BillerReport : object
     {
@@ -1198,7 +1222,7 @@ namespace ServiceReference
         }
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     [System.ServiceModel.ServiceContractAttribute(Namespace="http://ch.swisspost.ebill.b2bservice", ConfigurationName="ServiceReference.B2BService")]
     public interface B2BService
     {
@@ -1264,13 +1288,13 @@ namespace ServiceReference
         System.Threading.Tasks.Task<string> ExecutePingAsync(string BillerID, string eBillAccountID, System.Nullable<bool> ErrorTest, System.Nullable<bool> ExceptionTest);
     }
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     public interface B2BServiceChannel : ServiceReference.B2BService, System.ServiceModel.IClientChannel
     {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.1.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "8.0.0")]
     public partial class B2BServiceClient : System.ServiceModel.ClientBase<ServiceReference.B2BService>, ServiceReference.B2BService
     {
         
@@ -1403,6 +1427,13 @@ namespace ServiceReference
         {
             return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginOpen(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndOpen));
         }
+        
+        #if !NET6_0_OR_GREATER
+        public virtual System.Threading.Tasks.Task CloseAsync()
+        {
+            return System.Threading.Tasks.Task.Factory.FromAsync(((System.ServiceModel.ICommunicationObject)(this)).BeginClose(null, null), new System.Action<System.IAsyncResult>(((System.ServiceModel.ICommunicationObject)(this)).EndClose));
+        }
+        #endif
         
         private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
         {

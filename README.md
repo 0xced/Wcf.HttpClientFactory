@@ -20,7 +20,7 @@ dotnet tool install --global --verbosity normal dotnet-svcutil
 
 ```sh
 mkdir HelloService && cd HelloService
-DOTNET_ROLL_FORWARD=LatestMajor dotnet svcutil --targetFramework net8.0 --namespace "*, LearnWebServices" "https://apps.learnwebservices.com/services/hello?WSDL"
+dotnet svcutil --targetFramework net8.0 --namespace "*, LearnWebServices" "https://apps.learnwebservices.com/services/hello?WSDL"
 dotnet new classlib -f net8.0
 rm Class1.cs
 dotnet add package System.ServiceModel.Http

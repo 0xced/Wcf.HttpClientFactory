@@ -1,6 +1,6 @@
 {
   "providerId": "Microsoft.Tools.ServiceModel.Svcutil",
-  "version": "2.1.0",
+  "version": "8.0.0",
   "options": {
     "inputs": [
       "http://www.dneonline.com/calculator.asmx?wsdl"
@@ -9,7 +9,7 @@
       "*, ServiceReference"
     ],
     "outputFile": "Reference.cs",
-    "targetFramework": "net6.0",
+    "targetFramework": "net8.0",
     "typeReuseMode": "All"
   }
 }
