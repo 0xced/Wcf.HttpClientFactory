@@ -6,6 +6,7 @@ internal sealed class HttpMessageHandlerBehavior<TConfiguration>(TConfiguration 
 {
     private readonly TConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     private readonly IHttpMessageHandlerFactory _httpMessageHandlerFactory = messageHandlerFactory ?? throw new ArgumentNullException(nameof(messageHandlerFactory));
+    private readonly ConditionalWeakTable<HttpMessageHandler, object> _messageHandlers = new();
 
     public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {
@@ -17,7 +18,16 @@ internal sealed class HttpMessageHandlerBehavior<TConfiguration>(TConfiguration 
             {
                 var httpServiceEndpoint = (HttpServiceEndpoint)endpoint;
                 var messageHandler = _httpMessageHandlerFactory.CreateHandler(httpServiceEndpoint.HttpClientName);
-                SetPrimaryHttpClientHandler(messageHandler, clientHandler);
+
+                lock (_messageHandlers)
+                {
+                    if (!_messageHandlers.TryGetValue(messageHandler, out _))
+                    {
+                        SetPrimaryHttpClientHandler(messageHandler, clientHandler);
+                        _messageHandlers.Add(messageHandler, true);
+                    }
+                }
+
                 return messageHandler;
             }
 
@@ -31,9 +41,7 @@ internal sealed class HttpMessageHandlerBehavior<TConfiguration>(TConfiguration 
         do
         {
             var innerHandler = delegatingHandler?.InnerHandler as DelegatingHandler;
-            // "delegatingHandler?.InnerHandler is SocketsHttpHandler" is how we identify that the messageHandler was created
-            // by the _httpMessageHandlerFactory and that we must change it to the primary client handler provided by WCF
-            if (delegatingHandler?.InnerHandler is SocketsHttpHandler && innerHandler?.InnerHandler == null)
+            if (delegatingHandler?.InnerHandler != null && innerHandler?.InnerHandler == null)
             {
                 delegatingHandler.InnerHandler = primaryHandler;
             }

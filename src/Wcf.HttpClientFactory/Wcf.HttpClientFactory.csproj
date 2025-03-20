@@ -21,6 +21,7 @@
     <Using Include="System.Diagnostics.CodeAnalysis" />
     <Using Include="System.Globalization" />
     <Using Include="System.Reflection" />
+    <Using Include="System.Runtime.CompilerServices" />
     <Using Include="System.ServiceModel" />
     <Using Include="System.ServiceModel.Channels" />
     <Using Include="System.ServiceModel.Description" />
