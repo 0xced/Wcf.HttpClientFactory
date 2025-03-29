@@ -20,13 +20,13 @@ dotnet tool install --global --verbosity normal dotnet-svcutil
 
 ```sh
 mkdir HelloService && cd HelloService
-dotnet svcutil --targetFramework net8.0 --namespace "*, LearnWebServices" "https://apps.learnwebservices.com/services/hello?WSDL"
+dotnet svcutil --targetFramework net8.0 --serviceContract --namespace "*, LearnWebServices" "https://apps.learnwebservices.com/services/hello?WSDL"
 dotnet new classlib -f net8.0
 rm Class1.cs
 dotnet add package System.ServiceModel.Http
 ```
 
-This generates the `HelloEndpoint` interface and its associated `HelloEndpointClient` implementation.
+This generates the `HelloEndpoint` interface (even though it doesn't start with `I` as per C# convention on interfaces naming).
 
 3. Add the [Wcf.HttpClientFactory](https://www.nuget.org/packages/Wcf.HttpClientFactory) NuGet package to your project using the NuGet Package Manager or run the following command:
 

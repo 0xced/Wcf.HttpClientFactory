@@ -6,5 +6,5 @@ namespace Wcf.HttpClientFactory.Tests;
 
 public sealed class LearnWebservicesContainer(IContainerConfiguration configuration) : DockerContainer(configuration)
 {
-    public Uri WebServiceUri => new($"http://localhost:{GetMappedPublicPort(8080)}/services/hello");
+    public Uri WebServiceUri => new($"http://{Hostname}:{GetMappedPublicPort(8080)}/services/hello");
 }
