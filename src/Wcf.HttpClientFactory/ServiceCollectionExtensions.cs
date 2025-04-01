@@ -24,10 +24,7 @@ public static class ServiceCollectionExtensions
     /// Registered as a singleton.
     /// </typeparam>
     /// <returns>An <see cref="IHttpClientBuilder"/> that can be used to configure the HTTP client.</returns>
-    /// <exception cref="ArgumentException">The <typeparamref name="TContract"/> has already been registered.</exception>
-    /// <exception cref="InvalidOperationException">
-    /// The <typeparamref name="TContract"/> is not a service contract or the <see cref="ClientBase{TContract}"/> cache setting is not properly configured.
-    /// </exception>
+    /// <exception cref="ArgumentException">The <typeparamref name="TContract"/> has already been registered or is not an interface of a service contract.</exception>
     public static IHttpClientBuilder AddContract<TContract, TConfiguration>(
         this IServiceCollection services,
         string? httpClientName = null,
