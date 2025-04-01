@@ -9,9 +9,6 @@
     <Nullable>enable</Nullable>
     <AnalysisMode>All</AnalysisMode>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- Because of TypeNameFormatter.cs(411,48): Error CA1200 : Avoid using cref tags with a prefix (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1200)
-         Will be fixed by https://github.com/stakx/TypeNameFormatter/pull/52 -->
-    <NoWarn>$(NoWarn);CA1200</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Label="Compiling">
@@ -84,7 +81,7 @@
 
   <ItemGroup Label="Development Dependencies">
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
-    <PackageReference Include="TypeNameFormatter.Sources" Version="1.1.1" PrivateAssets="all" />
+    <PackageReference Include="TypeNameFormatter.Sources" Version="1.1.2" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="ValidateNuGetPackage" AfterTargets="Pack">

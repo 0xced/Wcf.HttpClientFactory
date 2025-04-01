@@ -34,9 +34,9 @@
       },
       "TypeNameFormatter.Sources": {
         "type": "Direct",
-        "requested": "[1.1.1, )",
-        "resolved": "1.1.1",
-        "contentHash": "F/CAp44cuoqP0zxNxqb6vCcina9+dO9kz+9OKhfYa5itHxa2JLx4QSsJEHmmW0y03ZDUwV1sg5dDggQOVuAqng=="
+        "requested": "[1.1.2, )",
+        "resolved": "1.1.2",
+        "contentHash": "hBX/S9l/qbI6hMzVT4RLX80i/dJXihXfso/0RX5XgrIZ1f98Arjv5DtxNJALqlcHI7HIkKH0RmrvsdPCnk/5vQ=="
       },
       "Microsoft.Extensions.Configuration": {
         "type": "Transitive",
