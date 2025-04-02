@@ -20,4 +20,18 @@ app.MapGet("/", async (HelloEndpoint hello, string? name) =>
     return result.HelloResponse.Message;
 });
 
+app.MapGet("/sync", async (IContractFactory<HelloEndpoint> helloFactory, string? name) =>
+{
+    var hello = helloFactory.CreateContract();
+    var result = await hello.SayHelloAsync(new SayHello(new helloRequest { Name = name ?? "World" }));
+    return result.HelloResponse.Message;
+});
+
+app.MapGet("/async", async (IContractFactory<HelloEndpoint> helloFactory, string? name) =>
+{
+    var hello = await helloFactory.CreateContractAsync();
+    var result = await hello.SayHelloAsync(new SayHello(new helloRequest { Name = name ?? "World" }));
+    return result.HelloResponse.Message;
+});
+
 app.Run();
