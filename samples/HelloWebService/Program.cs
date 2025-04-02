@@ -11,6 +11,7 @@ builder.Services.AddOptions<HelloServiceOptions>()
         "The HelloService:EndpointAddress value must be configured in the application settings.");
 
 builder.Services.AddContract<HelloEndpoint, HelloServiceConfiguration>();
+builder.Services.AddHostedService<HelloEndpointInitializer>();
 
 var app = builder.Build();
 
