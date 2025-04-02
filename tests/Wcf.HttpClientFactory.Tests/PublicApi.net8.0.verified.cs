@@ -13,6 +13,7 @@ namespace Wcf.HttpClientFactory
     {
         protected ContractConfiguration() { }
         protected virtual void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Description.ClientCredentials clientCredentials) { }
+        protected virtual System.Threading.Tasks.Task ConfigureEndpointAsync(System.ServiceModel.Description.ServiceEndpoint endpoint, System.ServiceModel.Description.ClientCredentials clientCredentials) { }
         protected abstract System.ServiceModel.Channels.Binding GetBinding();
         protected abstract System.ServiceModel.EndpointAddress GetEndpointAddress();
     }

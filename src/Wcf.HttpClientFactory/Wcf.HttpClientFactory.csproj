@@ -17,6 +17,7 @@
     </AssemblyAttribute>
     <Using Include="System.Diagnostics.CodeAnalysis" />
     <Using Include="System.Globalization" />
+    <Using Include="System.IdentityModel.Selectors" />
     <Using Include="System.Reflection" />
     <Using Include="System.Runtime.CompilerServices" />
     <Using Include="System.ServiceModel" />

@@ -43,9 +43,10 @@ public static class ServiceCollectionExtensions
         services.Add<ChannelFactory<TContract>>(factoryLifetime, sp =>
         {
             var configuration = sp.GetRequiredService<TConfiguration>();
+            configuration.FactoryLifetime = factoryLifetime;
             var httpMessageHandlerBehavior = sp.GetRequiredService<HttpMessageHandlerBehavior<TConfiguration>>();
             var endpoint = configuration.CreateServiceEndpoint(clientName, httpMessageHandlerBehavior);
-            var channelFactory = configuration.CreateChannelFactory(endpoint);
+            var channelFactory = new ConfigurableChannelFactory<TContract>(configuration, endpoint);
             return channelFactory;
         });
 
