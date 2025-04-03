@@ -1,5 +1,8 @@
 namespace Wcf.HttpClientFactory;
 
+/// <summary>
+/// Used to track <see cref="ClientCredentials"/> as they are cloned and passed to the <see cref="SecurityTokenManager"/>.
+/// </summary>
 internal sealed class CredentialsTracker : ClientCredentials
 {
     private ClientCredentialsSecurityTokenManager? _securityTokenManager;
