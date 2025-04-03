@@ -69,6 +69,8 @@ public abstract class ContractConfiguration<TContract> : ContractConfiguration
     {
         if (_isConfigureEndpointAsyncOverridden.Value)
         {
+            // Revisit this if "[API Proposal]: Asynchronous DI support" eventually lands into Microsoft.Extensions.DependencyInjection
+            // https://github.com/dotnet/runtime/issues/65656
             var message = FactoryLifetime switch
             {
                 ServiceLifetime.Transient => $"Please override the ConfigureEndpoint method in {GetType().GetFormattedName()}. " +
