@@ -5,6 +5,7 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Security;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
@@ -48,7 +49,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 
     [Theory]
     [CombinatorialData]
-    public async Task B2BService_AsyncOnlyConfiguration_Success([CombinatorialValues(ServiceLifetime.Singleton, ServiceLifetime.Scoped)] ServiceLifetime factoryLifetime)
+    public async Task B2BService_AsyncOnlyConfiguration_Success(ServiceLifetime factoryLifetime)
     {
         var keyVaultName = Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_NAME");
         Assert.SkipWhen(string.IsNullOrEmpty(keyVaultName), "The AZURE_KEY_VAULT_NAME environment variable must be configured");
@@ -60,50 +61,52 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
-        var channelFactory = scope.ServiceProvider.GetRequiredService<ChannelFactory<B2BService>>();
-        await Task.Factory.FromAsync(channelFactory.BeginOpen, channelFactory.EndOpen, null);
 
         var options = serviceProvider.GetRequiredService<IOptions<B2BServiceOptions>>().Value;
 
         for (var i = 1; i <= 2; i++)
         {
-            var service = scope.ServiceProvider.GetRequiredService<B2BService>();
+            var contractFactory = scope.ServiceProvider.GetRequiredService<IContractFactory<B2BService>>();
+            var service = await contractFactory.CreateContractAsync(TestContext.Current.CancellationToken);
             var response = await service.ExecutePingAsync(BillerID: options.BillerId, eBillAccountID: "", ErrorTest: false, ExceptionTest: false);
             response.Should().Be(options.BillerId);
         }
     }
 
-    [Theory]
-    [CombinatorialData]
-    public async Task B2BService_AsyncOnlyConfiguration_OpenAsyncError([CombinatorialValues(ServiceLifetime.Singleton, ServiceLifetime.Scoped)] ServiceLifetime factoryLifetime)
+    [Fact]
+    public async Task B2BServiceInjected_AsyncOnlyConfiguration_Error()
     {
         var services = new ServiceCollection();
         services.AddSingleton(new SecretClient(new Uri("about:blank"), new DefaultAzureCredential()));
-        services.AddContract<B2BService, B2BServiceAsyncOnlyConfiguration>(factoryLifetime: factoryLifetime);
+        services.AddContract<B2BService, B2BServiceAsyncOnlyConfiguration>();
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
 
         // ReSharper disable once AccessToDisposedClosure
         var action = () => _ = scope.ServiceProvider.GetRequiredService<B2BService>();
 
-        const string expectedMessage = "The ChannelFactory<B2BService> should be opened asynchronously prior to instantiating B2BService.";
+        const string expectedMessage =
+            "B2BService can not be injected directly. Instead, IContractFactory<B2BService> must be injected and CreateContractAsync() must be used to create B2BService instances. " +
+            "Alternatively, B2BServiceTest.B2BServiceAsyncOnlyConfiguration.ConfigureEndpoint() can be overridden to create B2BService instances synchronously.";
         action.Should().ThrowExactly<InvalidOperationException>().WithMessage(expectedMessage);
     }
 
     [Fact]
-    public async Task B2BService_AsyncOnlyConfiguration_ImplementConfigureEndpointError()
+    public async Task B2BServiceCreateContract_AsyncOnlyConfiguration_Error()
     {
         var services = new ServiceCollection();
         services.AddSingleton(new SecretClient(new Uri("about:blank"), new DefaultAzureCredential()));
-        services.AddContract<B2BService, B2BServiceAsyncOnlyConfiguration>(factoryLifetime: ServiceLifetime.Transient);
+        services.AddContract<B2BService, B2BServiceAsyncOnlyConfiguration>();
         await using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();
+        var contractFactory = scope.ServiceProvider.GetRequiredService<IContractFactory<B2BService>>();
 
         // ReSharper disable once AccessToDisposedClosure
-        var action = () => _ = scope.ServiceProvider.GetRequiredService<B2BService>();
+        var action = void () => _ = contractFactory.CreateContract();
 
-        const string expectedMessage = "Please override the ConfigureEndpoint method in B2BServiceTest.B2BServiceAsyncOnlyConfiguration. " +
-                                       "Alternatively, the ChannelFactory<B2BService> can be registered as singleton or scoped and be opened asynchronously prior to instantiating B2BService.";
+        const string expectedMessage =
+            "IContractFactory<B2BService>.CreateContractAsync() must be used instead of CreateContract() to create B2BService instances. " +
+            "Alternatively, B2BServiceTest.B2BServiceAsyncOnlyConfiguration.ConfigureEndpoint() can be overridden to create B2BService instances synchronously.";
         action.Should().ThrowExactly<InvalidOperationException>().WithMessage(expectedMessage);
     }
 
@@ -136,7 +139,7 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
 
         if (asyncScope)
         {
-            // DisposeAsync works fine, even when in a faulted state thanks to https://github.com/dotnet/wcf/pull/4865
+            // DisposeAsync works fine, even when in a faulted state thanks to https://github.com/dotnet/wcf/pull/4865 and https://github.com/dotnet/wcf/pull/5385
             await scope.DisposeAsync();
         }
         else
@@ -187,9 +190,9 @@ public class B2BServiceTest(ITestOutputHelper outputHelper)
     {
         private readonly IOptions<B2BServiceOptions> _options = options;
 
-        protected override async Task ConfigureEndpointAsync(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
+        protected override async Task ConfigureEndpointAsync(ServiceEndpoint endpoint, ClientCredentials clientCredentials, CancellationToken cancellationToken)
         {
-            KeyVaultSecret secret = await secretClient.GetSecretAsync("B2BService");
+            KeyVaultSecret secret = await secretClient.GetSecretAsync("B2BService", cancellationToken: cancellationToken);
             var escapedCredentials = secret.Value.Split(':');
             var user = Uri.UnescapeDataString(escapedCredentials[0]);
             var password = Uri.UnescapeDataString(escapedCredentials[1]);

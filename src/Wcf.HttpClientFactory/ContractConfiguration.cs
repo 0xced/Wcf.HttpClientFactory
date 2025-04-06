@@ -26,7 +26,7 @@ public abstract class ContractConfiguration
 /// <item>The contract service endpoint and client credentials can be configured by overriding the <see cref="ConfigureEndpoint"/> method.</item>
 /// </list>
 /// </summary>
-/// <typeparam name="TContract">The service contract interface. This type must be decorated with the <see cref="ServiceContractAttribute"/>.</typeparam>
+/// <typeparam name="TContract">The WCF service contract interface. This type must be decorated with the <see cref="ServiceContractAttribute"/>.</typeparam>
 [SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "One value per closed type is what is needed as they are actually constructed from TContract")]
 public abstract class ContractConfiguration<TContract> : ContractConfiguration
     where TContract : class
@@ -36,7 +36,7 @@ public abstract class ContractConfiguration<TContract> : ContractConfiguration
     /// <summary>
     /// Initializes a new instance of the <see cref="ContractConfiguration{TContract}"/> class.
     /// </summary>
-    protected ContractConfiguration() => _isConfigureEndpointAsyncOverridden = new Lazy<bool>(IsConfigureEndpointAsyncOverridden);
+    protected ContractConfiguration() => _isConfigureEndpointAsyncOverridden = new Lazy<bool>(IsConfigureEndpointAsyncOverriddenImpl);
 
     private static ContractDescription? _contractDescription;
     internal static ContractDescription ContractDescription
@@ -58,8 +58,6 @@ public abstract class ContractConfiguration<TContract> : ContractConfiguration
     /// </summary>
     protected abstract EndpointAddress GetEndpointAddress();
 
-    internal ServiceLifetime FactoryLifetime { get; set; }
-
     /// <summary>
     /// Optionally override this method to configure the <see cref="ServiceEndpoint"/> and/or the <see cref="ClientCredentials"/> used for connecting to the service.
     /// </summary>
@@ -67,18 +65,6 @@ public abstract class ContractConfiguration<TContract> : ContractConfiguration
     /// <param name="clientCredentials">The <see cref="ClientCredentials"/> used for connecting to the service.</param>
     protected internal virtual void ConfigureEndpoint(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
     {
-        if (_isConfigureEndpointAsyncOverridden.Value)
-        {
-            // Revisit this if "[API Proposal]: Asynchronous DI support" eventually lands into Microsoft.Extensions.DependencyInjection
-            // https://github.com/dotnet/runtime/issues/65656
-            var message = FactoryLifetime switch
-            {
-                ServiceLifetime.Transient => $"Please override the ConfigureEndpoint method in {GetType().GetFormattedName()}. " +
-                                             $"Alternatively, the {typeof(ChannelFactory<TContract>).GetFormattedName()} can be registered as singleton or scoped and be opened asynchronously prior to instantiating {typeof(TContract).GetFormattedName()}.",
-                _ => $"The {typeof(ChannelFactory<TContract>).GetFormattedName()} should be opened asynchronously prior to instantiating {typeof(TContract).GetFormattedName()}.",
-            };
-            throw new InvalidOperationException(message);
-        }
     }
 
     /// <summary>
@@ -86,29 +72,11 @@ public abstract class ContractConfiguration<TContract> : ContractConfiguration
     /// </summary>
     /// <param name="endpoint">The <see cref="ServiceEndpoint"/> used for connecting to the service.</param>
     /// <param name="clientCredentials">The <see cref="ClientCredentials"/> used for connecting to the service.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to signal the asynchronous operation should be canceled.</param>
     /// <remarks>
-    /// For this method to be called instead of <see cref="ConfigureEndpoint"/>, the <see cref="ChannelFactory{TContract}"/> must be explicitly opened asynchronously.
-    /// <para/>
-    /// For example, in ASP.NET Core, this can be achieved at startup in a hosted service by injecting the channel factory.
-    /// <code>
-    /// using System.ServiceModel;
-    /// using System.Threading;
-    /// using System.Threading.Tasks;
-    /// using LearnWebServices;
-    /// using Microsoft.Extensions.Hosting;
-    ///  
-    /// namespace HelloWebService;
-    ///  
-    /// public class HelloEndpointInitializer(ChannelFactory&lt;HelloEndpoint&gt; channelFactory) : BackgroundService
-    /// {
-    ///     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    ///     {
-    ///         await Task.Factory.FromAsync(channelFactory.BeginOpen, channelFactory.EndOpen, state: null);
-    ///     }
-    /// }
-    /// </code>
+    /// For this method to be called instead of <see cref="ConfigureEndpoint"/>, use the <see cref="IContractFactory{TContract}.CreateContractAsync"/> method of <see cref="IContractFactory{TContract}"/>.
     /// </remarks>
-    protected internal virtual Task ConfigureEndpointAsync(ServiceEndpoint endpoint, ClientCredentials clientCredentials)
+    protected internal virtual Task ConfigureEndpointAsync(ServiceEndpoint endpoint, ClientCredentials clientCredentials, CancellationToken cancellationToken = default)
     {
         ConfigureEndpoint(endpoint, clientCredentials);
         return Task.CompletedTask;
@@ -123,8 +91,10 @@ public abstract class ContractConfiguration<TContract> : ContractConfiguration
         return serviceEndpoint;
     }
 
+    internal bool IsConfigureEndpointAsyncOverridden => _isConfigureEndpointAsyncOverridden.Value;
+
     // No "good" solution to check if a method is overridden, see https://github.com/dotnet/runtime/issues/111083
-    private bool IsConfigureEndpointAsyncOverridden()
+    private bool IsConfigureEndpointAsyncOverriddenImpl()
     {
         var baseType = typeof(ContractConfiguration<TContract>);
         var baseMethod = baseType.GetMethod(nameof(ConfigureEndpointAsync), BindingFlags.Instance | BindingFlags.NonPublic)

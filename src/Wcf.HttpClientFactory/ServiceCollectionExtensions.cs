@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
     /// </param>
     /// <param name="contractLifetime">The <see cref="ServiceLifetime"/> of the registered contract. Defaults to <see cref="ServiceLifetime.Transient"/>.</param>
     /// <param name="factoryLifetime">
-    /// The <see cref="ServiceLifetime"/> of the <see cref="ChannelFactory{TContract}"/> used for creating the <typeparamref name="TContract"/> instances.
+    /// The <see cref="ServiceLifetime"/> of the <see cref="IContractFactory{TContract}"/> used for creating the <typeparamref name="TContract"/> instances.
     /// Defaults to <see cref="ServiceLifetime.Singleton"/>.
     /// </param>
     /// <typeparam name="TContract">The type of the service contract to register. This type must be decorated with the <see cref="ServiceContractAttribute"/>.</typeparam>
@@ -40,20 +40,19 @@ public static class ServiceCollectionExtensions
 
         var clientName = string.IsNullOrEmpty(httpClientName) ? contractDescription.Name : httpClientName;
 
-        services.Add<ChannelFactory<TContract>>(factoryLifetime, sp =>
+        services.Add<IContractFactory<TContract>>(factoryLifetime, sp =>
         {
             var configuration = sp.GetRequiredService<TConfiguration>();
-            configuration.FactoryLifetime = factoryLifetime;
             var httpMessageHandlerBehavior = sp.GetRequiredService<HttpMessageHandlerBehavior<TConfiguration>>();
             var endpoint = configuration.CreateServiceEndpoint(clientName, httpMessageHandlerBehavior);
-            var channelFactory = new ConfigurableChannelFactory<TContract>(configuration, endpoint);
-            return channelFactory;
+            var contractFactory = new ContractFactory<TContract>(configuration, new ChannelFactory<TContract>(endpoint));
+            return contractFactory;
         });
 
         services.Add<TContract>(contractLifetime, static sp =>
         {
-            var channelFactory = sp.GetRequiredService<ChannelFactory<TContract>>();
-            return channelFactory.CreateChannel();
+            var contractFactory = (ContractFactory<TContract>)sp.GetRequiredService<IContractFactory<TContract>>();
+            return contractFactory.CreateContract(ContractCreation.DependencyInjection);
         });
 
         return services.AddHttpClient(clientName);
