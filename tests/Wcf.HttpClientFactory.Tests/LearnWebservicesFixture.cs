@@ -22,7 +22,8 @@ public class LearnWebservicesFixture(IMessageSink messageSink) : ContainerFixtur
         try
         {
             using var httpClient = new HttpClient();
-            await httpClient.GetAsync(HelloEndpointClient.DefaultUri);
+            using var response = await httpClient.GetAsync($"{HelloEndpointClient.DefaultUri}?wsdl", HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
             IsServiceAvailable = true;
         }
         catch
