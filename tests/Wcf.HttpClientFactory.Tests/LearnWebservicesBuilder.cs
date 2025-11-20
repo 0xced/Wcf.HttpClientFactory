@@ -23,7 +23,7 @@ public sealed class LearnWebservicesBuilder : ContainerBuilder<LearnWebservicesB
         return base.Init()
             .WithImage("vicziani/lwsapp")
             .WithPortBinding(8080, assignRandomHostPort: true)
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(8080));
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(8080));
     }
 
     public override LearnWebservicesContainer Build()

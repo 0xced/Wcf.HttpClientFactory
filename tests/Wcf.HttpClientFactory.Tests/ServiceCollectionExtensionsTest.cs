@@ -1,7 +1,7 @@
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceReference;
 using Xunit;
