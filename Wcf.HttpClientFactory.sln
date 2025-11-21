@@ -8,7 +8,6 @@ ProjectSection(SolutionItems) = preProject
 	global.json = global.json
 	NuGet.config = NuGet.config
 	.config\dotnet-tools.json = .config\dotnet-tools.json
-	.github\workflows\continuous-integration.yml = .github\workflows\continuous-integration.yml
 	src\Wcf.HttpClientFactory\packages.lock.json = src\Wcf.HttpClientFactory\packages.lock.json
 	MAINTENANCE.md = MAINTENANCE.md
 	CHANGELOG.md = CHANGELOG.md
@@ -19,7 +18,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{2B16146C-F1EF-41C4-A7E8-1CD5D266166A}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\continuous-integration.yml = .github\workflows\continuous-integration.yml
-		.github\workflows\test-report.yml = .github\workflows\test-report.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5AE1F3F5-C38D-4653-9F17-DB711F7CCFF7}"
