@@ -12,17 +12,17 @@
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.8.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
     <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="NuGet.Versioning" Version="7.0.0" />
-    <PackageReference Include="PublicApiGenerator" Version="11.5.1" />
-    <PackageReference Include="ReportGenerator" Version="5.5.0" PrivateAssets="all" />
-    <PackageReference Include="Testcontainers.XunitV3" Version="4.8.1" />
-    <PackageReference Include="Verify.XunitV3" Version="31.7.1" />
+    <PackageReference Include="NuGet.Versioning" Version="7.0.1" />
+    <PackageReference Include="PublicApiGenerator" Version="11.5.4" />
+    <PackageReference Include="ReportGenerator" Version="5.5.01" PrivateAssets="all" />
+    <PackageReference Include="Testcontainers.XunitV3" Version="4.10.0" />
+    <PackageReference Include="Verify.XunitV3" Version="31.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
-    <PackageReference Include="xunit.v3.mtp-v2" Version="3.2.0" />
+    <PackageReference Include="xunit.v3.mtp-v2" Version="3.2.1" />
     <PackageReference Include="Xunit.Combinatorial" Version="2.0.24" />
   </ItemGroup>
 

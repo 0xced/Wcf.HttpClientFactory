@@ -82,7 +82,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Development Dependencies">
-    <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
+    <PackageReference Include="MinVer" Version="7.0.0" PrivateAssets="all" />
     <PackageReference Include="TypeNameFormatter.Sources" Version="1.1.2" PrivateAssets="all" />
   </ItemGroup>
 
